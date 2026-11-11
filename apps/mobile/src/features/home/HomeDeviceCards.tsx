@@ -2,6 +2,7 @@ import type { EnvironmentId } from "@t3tools/contracts";
 import { Pressable, ScrollView, View } from "react-native";
 
 import { AppText as Text } from "../../components/ui/AppText";
+import { WorkspaceHeading } from "../../components/ui/WorkspaceHeading";
 import { cn } from "../../lib/cn";
 import { DeviceIllustration } from "./DeviceIllustration";
 import { describeHomeActivity, type HomeDeviceSummary } from "./home-device-summary";
@@ -43,9 +44,9 @@ export function HomeDeviceCards(props: {
             <View className="items-start">
               <DeviceIllustration kind={device.machineKind} status={device.status} width={76} />
             </View>
-            <Text className="mt-1 font-t3-bold text-xs" numberOfLines={1}>
+            <WorkspaceHeading className="mt-1 text-xs" numberOfLines={1}>
               {device.label}
-            </Text>
+            </WorkspaceHeading>
             <Text
               className={cn(
                 "text-2xs",

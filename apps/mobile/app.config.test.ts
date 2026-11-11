@@ -6,7 +6,19 @@ import assetLinks from "../web/public/.well-known/assetlinks.json";
 
 // Keep config parsing independent of local env files and build credentials.
 vi.mock("../../scripts/lib/public-config.ts", () => ({
-  loadRepoEnv: () => ({ APP_VARIANT: process.env.APP_VARIANT }),
+  loadRepoEnv: () =>
+    Object.fromEntries(
+      [
+        "APP_VARIANT",
+        "T3CODE_WORKSPACE_TESTFLIGHT",
+        "T3CODE_WORKSPACE_BUILD_NUMBER",
+        "T3CODE_RELAY_URL",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY",
+      ].flatMap((key) => {
+        const value = process.env[key];
+        return value === undefined ? [] : [[key, value]];
+      }),
+    ),
 }));
 
 afterEach(() => {
@@ -44,4 +56,25 @@ it.each([
     { scheme: "https", host, pathPrefix: "/threads/" },
   ]);
   expect(assetLinks.map((link) => link.target.package_name)).toContain(identifier);
+});
+
+it("uses an independent iOS identity for Workspace TestFlight builds", async () => {
+  vi.stubEnv("T3CODE_WORKSPACE_TESTFLIGHT", "1");
+  vi.stubEnv("T3CODE_WORKSPACE_BUILD_NUMBER", "7");
+  vi.stubEnv("T3CODE_RELAY_URL", "https://relay.example.test");
+  vi.stubEnv("EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY", "pk_test_placeholder");
+  const config = await loadConfig("production");
+  expect(config.platforms).toEqual(["ios"]);
+  expect(config.scheme).toBe("marlon-workspace");
+  expect(config.ios).toMatchObject({
+    bundleIdentifier: "com.marlonma.workspace",
+    buildNumber: "7",
+    entitlements: { "keychain-access-groups": ["$(AppIdentifierPrefix)com.marlonma.workspace"] },
+  });
+  expect(config.ios?.associatedDomains).toBeUndefined();
+  expect(config.updates).toEqual({ enabled: false });
+  expect(config.owner).toBeUndefined();
+  expect(config.extra?.eas).toBeUndefined();
+  expect(config.extra?.relay.url).toBeNull();
+  expect(config.extra?.clerk.publishableKey).toBeNull();
 });
