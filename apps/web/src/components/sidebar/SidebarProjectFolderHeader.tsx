@@ -73,7 +73,7 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
           event.preventDefault();
           props.onContextMenu(group, { x: event.clientX, y: event.clientY });
         }}
-        className="flex h-8 w-full cursor-pointer items-center gap-2.5 rounded-(--control-radius) px-(--sidebar-row-content-inset) text-left outline-none hover:bg-sidebar-row-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        className="flex h-8 w-full cursor-pointer items-center gap-2.5 rounded-(--control-radius) px-(--sidebar-row-content-inset) text-left outline-none transition-[background-color] duration-150 ease-out hover:bg-sidebar-row-hover hover:duration-0 active:bg-sidebar-row-active focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
       >
         <ProjectFavicon project={group} className="size-4 shrink-0" />
         <span className="min-w-0 flex-1 truncate text-sm font-medium text-sidebar-foreground/90">
@@ -92,13 +92,13 @@ export const SidebarProjectFolderHeader = memo(function SidebarProjectFolderHead
         <ChevronDownIcon
           aria-hidden
           className={cn(
-            "size-3 shrink-0 text-sidebar-muted-foreground transition-transform",
+            "size-3 shrink-0 text-sidebar-muted-foreground transition-transform duration-150 ease-emphasized motion-reduce:transition-none",
             collapsed && "-rotate-90",
           )}
         />
       </button>
       {/* Sits over the count, which hides on hover, and left of the chevron. */}
-      <span className="absolute inset-y-0 right-6 flex items-center opacity-0 focus-within:opacity-100 group-hover/project-folder:opacity-100 pointer-coarse:opacity-100">
+      <span className="absolute inset-y-0 right-6 flex items-center opacity-0 transition-opacity duration-0 ease-out focus-within:opacity-100 group-hover/project-folder:opacity-100 group-hover/project-folder:duration-100 pointer-coarse:opacity-100">
         <Tooltip>
           <TooltipTrigger
             render={

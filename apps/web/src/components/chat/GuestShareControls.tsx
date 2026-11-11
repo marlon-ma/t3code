@@ -10,7 +10,7 @@ import {
   type ScopedThreadRef,
   type ThreadGuestShare,
 } from "@t3tools/contracts";
-import { CheckIcon, CopyIcon, UserIcon } from "lucide-react";
+import { CopyIcon, UserIcon } from "lucide-react";
 import { useState } from "react";
 
 import { useCopyToClipboard } from "~/hooks/useCopyToClipboard";
@@ -24,6 +24,7 @@ import { useAtomCommand } from "~/state/use-atom-command";
 import { cn } from "~/lib/utils";
 import { useOrchestrationCommand } from "~/state/use-orchestration-command";
 import { Button } from "../ui/button";
+import { CopiedCheckIcon } from "./MessageCopyButton";
 import {
   Dialog,
   DialogDescription,
@@ -126,7 +127,7 @@ function GuestShareDialog({
                 onFocus={(event) => event.currentTarget.select()}
               />
               <Button size="sm" variant="outline" onClick={() => copyToClipboard(state.url)}>
-                {isCopied ? <CheckIcon /> : <CopyIcon />}
+                {isCopied ? <CopiedCheckIcon /> : <CopyIcon />}
                 {isCopied ? "Copied" : "Copy"}
               </Button>
             </div>

@@ -14,7 +14,7 @@ export function TriageDraftHero(props: {
 }) {
   const { copyToClipboard, isCopied } = useCopyToClipboard({ timeout: 1500, target: "command" });
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col items-center">
+    <div className="mx-auto flex w-full max-w-5xl flex-col items-center sm:duration-200 sm:ease-emphasized sm:starting:translate-y-1 sm:starting:opacity-0 sm:motion-safe:transition-[opacity,translate]">
       <h1 className="w-full text-center font-normal text-2xl text-foreground tracking-tight sm:text-3xl">
         What went wrong?
       </h1>

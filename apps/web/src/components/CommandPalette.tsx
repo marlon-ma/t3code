@@ -2900,7 +2900,9 @@ function OpenCommandPaletteDialog(props: {
   ) : isThreadSearchPending && !isLinkedThreadSearch && !isBrowsing ? (
     // In the footer, so the list keeps its height while message results may
     // still arrive below it.
-    <span className="text-muted-foreground text-xs">Searching messages…</span>
+    <span className="text-muted-foreground text-xs transition-opacity delay-150 duration-150 ease-out starting:opacity-0 motion-reduce:transition-none">
+      Searching messages…
+    </span>
   ) : null;
 
   return (

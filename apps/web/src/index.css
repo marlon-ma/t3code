@@ -193,6 +193,12 @@ html[data-mobile-composer-route-transition="true"]::view-transition-old(t3-mobil
   --inset-shadow-control-highlight: 0 1px rgb(255 255 255 / 16%);
   --inset-shadow-control-pressed: 0 1px rgb(0 0 0 / 8%);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  /* emphasized is the default for entrances and state changes: fast start, long
+     settle. exit is its accelerating counterpart for things leaving. spring adds
+     one small overshoot for short pops (checks, toggles, badges) only. */
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring: linear(0, 0.36 9%, 0.72 19%, 0.94 28%, 1.04 36%, 1.07 44%, 1.05 54%, 1.01 70%, 1);
   /* The composer's elevation: a soft drop pulled in under the surface, shared
      by the composer, its context strip and attached banners. */
   --shadow-composer: 0 1px 2px rgb(0 0 0 / 5%);

@@ -79,7 +79,7 @@ export function ComposerCommandMenuLayer(props: {
 
   return createPortal(
     <div
-      className="pointer-events-auto fixed z-40 flex flex-col"
+      className="pointer-events-auto fixed z-40 flex flex-col transition-opacity duration-150 ease-emphasized starting:opacity-0 motion-reduce:transition-none"
       data-composer-drawer-layer="true"
       style={{
         bottom: position.bottom,

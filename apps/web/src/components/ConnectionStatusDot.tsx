@@ -42,7 +42,12 @@ export function ConnectionStatusDot({
           )}
         />
       ) : null}
-      <span className={cn("relative inline-flex size-2 rounded-full", dotClassName)} />
+      <span
+        className={cn(
+          "relative inline-flex size-2 rounded-full transition-[background-color] duration-200 ease-out",
+          dotClassName,
+        )}
+      />
     </>
   );
 

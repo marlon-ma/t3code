@@ -412,7 +412,7 @@ export function DraftHeroHeadline({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col items-center">
+    <div className="mx-auto flex w-full max-w-5xl flex-col items-center sm:duration-200 sm:ease-emphasized sm:starting:translate-y-1 sm:starting:opacity-0 sm:motion-safe:transition-[opacity,translate]">
       {hasResolvedProject && !isScratchDraft ? (
         <DraftHeroProjectHeading projectName={activeProjectTitle ?? "Choose a project"}>
           {projectSelector}

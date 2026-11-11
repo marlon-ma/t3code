@@ -545,7 +545,7 @@ function WorkEntryLogRow(props: WorkEntryRowProps) {
           >
             <ChevronRightIcon
               className={cn(
-                "size-3 shrink-0 text-icon-muted opacity-70 transition-transform duration-200",
+                "size-3 shrink-0 text-icon-muted opacity-70 transition-transform duration-150 ease-emphasized motion-reduce:transition-none",
                 expanded && "rotate-90",
               )}
             />

@@ -136,7 +136,7 @@ const V2SubagentGroup = memo(function V2SubagentGroup({
           <ChevronDownIcon
             aria-hidden
             className={cn(
-              "size-3.5 shrink-0 text-muted-foreground transition-transform",
+              "size-3.5 shrink-0 text-muted-foreground transition-transform duration-150 ease-emphasized motion-reduce:transition-none",
               expanded && "rotate-180",
             )}
           />

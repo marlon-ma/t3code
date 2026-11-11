@@ -618,7 +618,7 @@ function ThreadStatusLabel({
           }
         >
           <span
-            className={`size-[9px] rounded-full ${status.dotClass} ${
+            className={`size-[9px] rounded-full transition-[background-color] duration-200 ease-out ${status.dotClass} ${
               status.pulse ? "motion-safe:animate-status-pulse" : ""
             }`}
           />
@@ -640,7 +640,7 @@ function ThreadStatusLabel({
         }
       >
         <span
-          className={`h-1.5 w-1.5 rounded-full ${status.dotClass} ${
+          className={`h-1.5 w-1.5 rounded-full transition-[background-color] duration-200 ease-out ${status.dotClass} ${
             status.pulse ? "motion-safe:animate-status-pulse" : ""
           }`}
         />

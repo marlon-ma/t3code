@@ -46,7 +46,7 @@ export function MarkdownDetails({
           data-markdown-details-summary=""
         >
           <ChevronRightIcon
-            className="size-4 shrink-0 text-muted-foreground transition-transform"
+            className="size-4 shrink-0 text-muted-foreground transition-transform duration-150 ease-emphasized motion-reduce:transition-none"
             aria-hidden
           />
           <span>{summary}</span>

@@ -1,4 +1,4 @@
-import { PlayIcon, WrapTextIcon, CheckIcon, CopyIcon } from "lucide-react";
+import { PlayIcon, WrapTextIcon, CopyIcon } from "lucide-react";
 import { toHtml } from "hast-util-to-html";
 import React, { use, useEffect, useState, type ReactNode } from "react";
 
@@ -17,6 +17,7 @@ import {
   syntheticFileNameForLanguageId,
 } from "../../pierre-icons";
 import { Button } from "../ui/button";
+import { CopiedCheckIcon } from "./MessageCopyButton";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { HighlightedCodeLines } from "./HighlightedCodeLines";
 import {
@@ -191,7 +192,7 @@ export function MarkdownCodeBlock({
           />
         }
       >
-        {copied ? <CheckIcon className="size-3" /> : <CopyIcon className="size-3" />}
+        {copied ? <CopiedCheckIcon className="size-3" /> : <CopyIcon className="size-3" />}
       </TooltipTrigger>
       <TooltipPopup side="top">{copyLabel}</TooltipPopup>
     </Tooltip>

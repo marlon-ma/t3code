@@ -79,7 +79,7 @@ function LicenseNoticeRow({
           <CollapsibleTrigger className="group flex min-h-10 min-w-0 flex-1 items-center gap-2.5 px-3 text-left sm:min-h-9 sm:px-4">
             <ChevronRightIcon
               aria-hidden
-              className="size-3.5 shrink-0 text-muted-foreground transition-transform duration-200 group-data-panel-open:rotate-90"
+              className="size-3.5 shrink-0 text-muted-foreground transition-transform duration-150 ease-emphasized group-data-panel-open:rotate-90 motion-reduce:transition-none"
             />
             <span className="flex min-w-0 flex-1 items-baseline gap-2">
               <span className="truncate font-medium text-foreground">{entry.name}</span>

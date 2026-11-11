@@ -268,7 +268,10 @@ function DiscoveryItemRow({
                 aria-label={`Toggle ${item.label} details`}
               >
                 <ChevronDownIcon
-                  className={cn("size-3.5 transition-transform", isExpanded && "rotate-180")}
+                  className={cn(
+                    "size-3.5 transition-transform duration-150 ease-emphasized motion-reduce:transition-none",
+                    isExpanded && "rotate-180",
+                  )}
                 />
               </Button>
             ) : null}

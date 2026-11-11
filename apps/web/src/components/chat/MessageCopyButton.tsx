@@ -8,6 +8,19 @@ import {
   showAnchoredCopySuccessToast,
 } from "../ui/anchoredCopyToast";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
+import { cn } from "~/lib/utils";
+
+/** Mounts when a copy lands, so the starting style pops it in once. */
+export function CopiedCheckIcon({ className }: { className?: string }) {
+  return (
+    <CheckIcon
+      className={cn(
+        "transition-[opacity,scale] duration-200 ease-spring starting:scale-50 starting:opacity-0 motion-reduce:transition-none",
+        className,
+      )}
+    />
+  );
+}
 
 export const MessageCopyButton = memo(function MessageCopyButton({
   text,
@@ -50,7 +63,11 @@ export const MessageCopyButton = memo(function MessageCopyButton({
           />
         }
       >
-        {isCopied ? <CheckIcon className="size-3 text-primary" /> : <Icon className="size-3" />}
+        {isCopied ? (
+          <CopiedCheckIcon className="size-3 text-primary" />
+        ) : (
+          <Icon className="size-3" />
+        )}
       </TooltipTrigger>
       <TooltipPopup>
         <p>{label}</p>

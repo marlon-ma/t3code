@@ -115,6 +115,9 @@ import { cn } from "../../lib/utils";
 import { formatRelativeTime } from "../../timestampFormat";
 
 const AGENT_ONBOARDING_THREAD_ID = ThreadId.make("onboarding-agent-setup");
+// Mount-only: @starting-style runs once, when the element first renders.
+const WELCOME_RISE_CLASS =
+  "transition-[opacity,translate] duration-250 ease-emphasized starting:translate-y-1.5 starting:opacity-0 motion-reduce:transition-none";
 const SCAN_LIMIT_MESSAGE = "Scan limit reached. Some projects or conversations may be missing.";
 
 /**
@@ -270,13 +273,18 @@ export function WelcomePage({
         {isElectron ? <WorkspacePageHeader electron /> : null}
         <div className="min-h-0 flex-1 overflow-y-auto scrollbar-gutter-both">
           <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-6 pt-12 pb-8 sm:pt-20">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            <h1
+              className={cn(
+                "text-2xl font-semibold tracking-tight text-foreground",
+                WELCOME_RISE_CLASS,
+              )}
+            >
               Welcome to T3 Code
             </h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">
+            <p className={cn("mt-1.5 text-sm text-muted-foreground", WELCOME_RISE_CLASS)}>
               Setting up <span className="text-foreground">{label}</span>.
             </p>
-            <div className="mt-10 border-t border-border/60">
+            <div className={cn("mt-10 border-t border-border/60 delay-60", WELCOME_RISE_CLASS)}>
               <AgentsSection
                 environmentId={environmentId}
                 label={label}
@@ -290,7 +298,12 @@ export function WelcomePage({
               />
               {showPhone ? <PhoneSection environmentId={environmentId} /> : null}
             </div>
-            <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <div
+              className={cn(
+                "mt-6 flex flex-wrap items-center justify-between gap-3 delay-120",
+                WELCOME_RISE_CLASS,
+              )}
+            >
               {agentReady ? (
                 <span />
               ) : (
@@ -326,7 +339,12 @@ export function WelcomePage({
 function TelemetryNotice({ environmentId }: { readonly environmentId: EnvironmentId }) {
   const telemetryOff = managedTelemetryOffMessage(useManagedPolicy(environmentId));
   return (
-    <p className="mt-auto pt-12 text-2xs leading-relaxed text-muted-foreground/70">
+    <p
+      className={cn(
+        "mt-auto pt-12 text-2xs leading-relaxed text-muted-foreground/70 delay-120",
+        WELCOME_RISE_CLASS,
+      )}
+    >
       {telemetryOff ?? "T3 Code collects anonymous usage data to improve the app."}{" "}
       {telemetryOff === undefined ? "To opt out, see the" : "See the"}{" "}
       <a
@@ -1665,7 +1683,7 @@ function ImportCandidateList({
               }
             />
             <CollapsibleTrigger className="group flex min-w-0 flex-1 items-center gap-1.5 text-left">
-              <ChevronRightIcon className="size-3.5 shrink-0 text-muted-foreground transition-transform group-data-panel-open:rotate-90" />
+              <ChevronRightIcon className="size-3.5 shrink-0 text-muted-foreground transition-transform duration-150 ease-emphasized group-data-panel-open:rotate-90 motion-reduce:transition-none" />
               <span className="truncate text-sm text-muted-foreground">Other folders</span>
               <span className="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums">
                 {other.length} {other.length === 1 ? "folder" : "folders"}
@@ -1723,7 +1741,7 @@ function ImportRepositoryGroup({
           onCheckedChange={(checked) => onToggle(keys, checked === true)}
         />
         <CollapsibleTrigger className="group flex min-w-0 flex-1 items-center gap-1.5 text-left">
-          <ChevronRightIcon className="size-3.5 shrink-0 text-muted-foreground transition-transform group-data-panel-open:rotate-90" />
+          <ChevronRightIcon className="size-3.5 shrink-0 text-muted-foreground transition-transform duration-150 ease-emphasized group-data-panel-open:rotate-90 motion-reduce:transition-none" />
           <span className="truncate text-sm font-medium">{group.label}</span>
           <ImportRowMeta
             sources={[...new Set(group.candidates.flatMap((c) => c.sources))]}

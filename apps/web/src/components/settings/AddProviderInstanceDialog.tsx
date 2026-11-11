@@ -493,7 +493,10 @@ export function AddProviderInstanceDialog({
                       {showMoreProviders ? "Show less" : "Show more"}
                       <ChevronDownIcon
                         aria-hidden
-                        className={cn("transition-transform", showMoreProviders && "rotate-180")}
+                        className={cn(
+                          "transition-transform duration-150 ease-emphasized motion-reduce:transition-none",
+                          showMoreProviders && "rotate-180",
+                        )}
                       />
                     </CollapsibleTrigger>
                   </div>

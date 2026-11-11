@@ -26,7 +26,7 @@ export function NoProjectsHero() {
         {/* The desktop window only moves where CSS opts in, so keep a titlebar strip. */}
         {isElectron ? <WorkspacePageHeader electron /> : null}
         <Empty size="hero" className="flex-1">
-          <div className="w-full max-w-lg px-8 py-12">
+          <div className="w-full max-w-lg px-8 py-12 transition-[opacity,translate] duration-240 ease-emphasized starting:translate-y-1.5 starting:opacity-0 motion-reduce:starting:translate-y-0">
             <EmptyHeader className="max-w-none">
               <EmptyTitle>What should we work on?</EmptyTitle>
               <EmptyDescription>
@@ -34,7 +34,7 @@ export function NoProjectsHero() {
                   ? "Add a project to start your first thread."
                   : "Add a project, or start without one."}
               </EmptyDescription>
-              <div className="mt-6 flex justify-center gap-2">
+              <div className="mt-6 flex justify-center gap-2 transition-[opacity,translate] delay-75 duration-240 ease-emphasized starting:translate-y-1 starting:opacity-0 motion-reduce:starting:translate-y-0">
                 <Button size="sm" onClick={() => openCommandPalette({ open: "add-project" })}>
                   <PlusIcon className="size-4" />
                   Add project

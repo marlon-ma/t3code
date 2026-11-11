@@ -5,7 +5,7 @@ import { Button } from "../ui/button";
 export function WorkspaceFileDropOverlay() {
   return (
     <div
-      className="pointer-events-none absolute inset-2 z-40 flex items-center justify-center rounded-2xl border-2 border-dashed border-primary/60 bg-primary/[0.035]"
+      className="pointer-events-none absolute inset-2 z-40 flex items-center justify-center rounded-2xl border-2 border-dashed border-primary/60 bg-primary/[0.035] transition-opacity duration-150 ease-emphasized starting:opacity-0 motion-reduce:transition-none"
       data-chat-workspace-drop-overlay="true"
     >
       <div
@@ -30,7 +30,7 @@ export function ScrollToEndButton(props: {
 }) {
   return (
     <div
-      className="chat-scroll-to-bottom pointer-events-none absolute z-30 flex justify-center py-1.5"
+      className="chat-scroll-to-bottom pointer-events-none absolute z-30 flex justify-center py-1.5 transition-[opacity,translate] duration-200 ease-emphasized starting:translate-y-1.5 starting:opacity-0 motion-reduce:transition-none"
       style={{ bottom: props.bottom }}
     >
       <Button

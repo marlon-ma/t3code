@@ -6,6 +6,7 @@ import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import type * as React from "react";
 
 import { cn } from "~/lib/utils";
+import { POPUP_MOTION_CLASS } from "./popup-motion";
 
 const Select = SelectPrimitive.Root;
 
@@ -129,7 +130,11 @@ function SelectPopup({
       >
         <SelectPrimitive.Popup
           // Electron drag hit-testing ignores z-index; items over a drag region would swallow clicks.
-          className="origin-(--transform-origin) rounded-lg text-foreground outline-none [-webkit-app-region:no-drag]"
+          className={cn(
+            "origin-(--transform-origin) rounded-lg text-foreground outline-none [-webkit-app-region:no-drag]",
+            POPUP_MOTION_CLASS,
+            "data-[side=none]:data-starting-style:scale-100 data-[side=none]:data-starting-style:opacity-100 data-[side=none]:data-ending-style:scale-100",
+          )}
           data-slot="select-popup"
           {...props}
         >

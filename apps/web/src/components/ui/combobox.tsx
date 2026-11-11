@@ -167,13 +167,13 @@ function ComboboxPopup({
       >
         <span
           className={cn(
-            "dropdown-glass relative flex max-h-full min-w-(--anchor-width) max-w-(--available-width) origin-(--transform-origin) rounded-lg shadow-[0_16px_40px_-18px_rgb(0_0_0/55%)] transition-[scale,opacity] dark:shadow-[0_18px_44px_-18px_rgb(0_0_0/80%)]",
+            "dropdown-glass relative flex max-h-full min-w-(--anchor-width) max-w-(--available-width) origin-(--transform-origin) rounded-lg shadow-[0_16px_40px_-18px_rgb(0_0_0/55%)] transition-[scale,opacity] duration-150 ease-emphasized has-[>[data-starting-style]]:scale-98 has-[>[data-starting-style]]:opacity-0 has-[>[data-ending-style]]:scale-98 has-[>[data-ending-style]]:opacity-0 has-[>[data-ending-style]]:duration-100 has-[>[data-ending-style]]:ease-exit motion-reduce:transition-none dark:shadow-[0_18px_44px_-18px_rgb(0_0_0/80%)]",
             className,
           )}
         >
           <ComboboxPrimitive.Popup
             // Electron drag hit-testing ignores z-index; items over a drag region would swallow clicks.
-            className="flex min-w-0 max-h-[min(var(--available-height),23rem)] flex-1 flex-col overflow-hidden text-foreground [-webkit-app-region:no-drag]"
+            className="flex min-w-0 max-h-[min(var(--available-height),23rem)] flex-1 flex-col overflow-hidden text-foreground transition-opacity duration-100 ease-exit data-ending-style:opacity-0 motion-reduce:transition-none [-webkit-app-region:no-drag]"
             data-slot="combobox-popup"
             {...props}
           >

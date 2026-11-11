@@ -281,7 +281,7 @@ export function SavedBackendListRow({
             <ChevronRightIcon
               aria-hidden
               className={cn(
-                "size-3 shrink-0 transition-transform duration-150 motion-reduce:transition-none",
+                "size-3 shrink-0 transition-transform duration-150 ease-emphasized motion-reduce:transition-none",
                 routesOpen && "rotate-90",
               )}
             />
@@ -300,7 +300,7 @@ export function SavedBackendListRow({
             <ChevronRightIcon
               aria-hidden
               className={cn(
-                "size-3 shrink-0 transition-transform duration-150 motion-reduce:transition-none",
+                "size-3 shrink-0 transition-transform duration-150 ease-emphasized motion-reduce:transition-none",
                 permissionsOpen && "rotate-90",
               )}
             />

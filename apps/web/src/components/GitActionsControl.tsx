@@ -370,7 +370,7 @@ function GitActionProgressButtonContent({ progress }: { progress: GitActionProgr
       </p>
       <div
         className={cn(
-          "col-start-2 grid min-w-0 transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none",
+          "col-start-2 grid min-w-0 transition-[grid-template-rows,opacity] duration-200 ease-emphasized motion-reduce:transition-none",
           hasOutput ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
         )}
       >
@@ -408,7 +408,7 @@ function GitActionSuccessButtonContent({ success }: { success: InlineGitActionSu
       </p>
       <div
         className={cn(
-          "col-start-2 grid min-w-0 transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none",
+          "col-start-2 grid min-w-0 transition-[grid-template-rows,opacity] duration-200 ease-emphasized motion-reduce:transition-none",
           hasDescription ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
         )}
       >
@@ -782,7 +782,7 @@ function PublishRepositoryDialog(props: PublishRepositoryDialogProps) {
               >
                 <ChevronDownIcon
                   className={cn(
-                    "size-3.5 transition-transform",
+                    "size-3.5 transition-transform duration-150 ease-emphasized motion-reduce:transition-none",
                     publishAdvancedOpen ? "" : "-rotate-90",
                   )}
                 />

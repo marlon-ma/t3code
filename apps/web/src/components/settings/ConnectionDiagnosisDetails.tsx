@@ -105,7 +105,7 @@ export function ConnectionDiagnosisSummary({
           <ChevronRightIcon
             aria-hidden
             className={cn(
-              "size-3 transition-transform duration-150 motion-reduce:transition-none",
+              "size-3 transition-transform duration-150 ease-emphasized motion-reduce:transition-none",
               expanded && "rotate-90",
             )}
           />

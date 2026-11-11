@@ -511,7 +511,7 @@ export function SettingsRow({
                   // Values set right here explain nothing new, so their marker waits for hover or focus.
                   (inheritance.state === "default" || inheritance.state === "environment") &&
                     overridingProjects.length === 0 &&
-                    "opacity-0 group-hover/settings-row:opacity-100 has-focus-visible:opacity-100 has-data-popup-open:opacity-100",
+                    "opacity-0 transition-opacity duration-150 group-hover/settings-row:opacity-100 has-focus-visible:opacity-100 has-data-popup-open:opacity-100",
                 )}
               >
                 {renderedInheritance}
@@ -615,7 +615,7 @@ export function SettingsPageContainer({
       onTargetHandled={clearTargetHash}
     >
       <div
-        className="topbar-scroll-fade scrollbar-gutter-both flex-1 overflow-y-auto"
+        className="topbar-scroll-fade scrollbar-gutter-both flex-1 overflow-y-auto transition-opacity duration-150 ease-out starting:opacity-0 motion-reduce:transition-none"
         data-settings-page-scroll
       >
         <WorkspacePageContainer width={width} className={cn("gap-8", className)}>

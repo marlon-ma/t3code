@@ -20,7 +20,7 @@ export function NoActiveThreadState() {
         </WorkspacePageHeader>
 
         <Empty className="flex-1">
-          <div className="w-full max-w-lg px-8 py-12">
+          <div className="w-full max-w-lg px-8 py-12 transition-[opacity,translate] duration-240 ease-emphasized starting:translate-y-1.5 starting:opacity-0 motion-reduce:starting:translate-y-0">
             <EmptyHeader className="max-w-none">
               <EmptyTitle>Pick a thread to continue</EmptyTitle>
               <EmptyDescription>

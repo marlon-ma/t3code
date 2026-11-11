@@ -102,13 +102,13 @@ function AutocompletePopup({
       >
         <span
           className={cn(
-            "relative flex max-h-full min-w-(--anchor-width) max-w-(--available-width) origin-(--transform-origin) rounded-lg border bg-popover not-dark:bg-clip-padding shadow-lg/5 transition-[scale,opacity] before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] dark:before:shadow-[0_-1px_--theme(--color-white/6%)]",
+            "relative flex max-h-full min-w-(--anchor-width) max-w-(--available-width) origin-(--transform-origin) rounded-lg border bg-popover not-dark:bg-clip-padding shadow-lg/5 transition-[scale,opacity] duration-150 ease-emphasized has-[>[data-starting-style]]:scale-98 has-[>[data-starting-style]]:opacity-0 has-[>[data-ending-style]]:scale-98 has-[>[data-ending-style]]:opacity-0 has-[>[data-ending-style]]:duration-100 has-[>[data-ending-style]]:ease-exit motion-reduce:transition-none before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] dark:before:shadow-[0_-1px_--theme(--color-white/6%)]",
             className,
           )}
         >
           <AutocompletePrimitive.Popup
             // Electron drag hit-testing ignores z-index; items over a drag region would swallow clicks.
-            className="flex max-h-[min(var(--available-height),23rem)] flex-1 flex-col text-foreground [-webkit-app-region:no-drag]"
+            className="flex max-h-[min(var(--available-height),23rem)] flex-1 flex-col text-foreground transition-opacity duration-100 ease-exit data-ending-style:opacity-0 motion-reduce:transition-none [-webkit-app-region:no-drag]"
             data-slot="autocomplete-popup"
             {...props}
           >
