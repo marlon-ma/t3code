@@ -82,9 +82,15 @@ import { useThreadListV2ShelfPreferences } from "../threads/use-thread-list-v2-s
 import type { HomeListFilterMenuEnvironment } from "./home-list-filter-menu";
 import {
   buildHomeProjectScopes,
+  buildHomeProjectSections,
   findHomeProjectScope,
+  sortHomeProjectScopes,
   type HomeProjectSortOrder,
 } from "./homeThreadList";
+import { buildHomeDeviceSummaries } from "./home-device-summary";
+import { HomeDeviceCards } from "./HomeDeviceCards";
+import { HomeProjectList } from "./HomeProjectList";
+import { SegmentedControl } from "../../components/ui/SegmentedControl";
 import { createSwipeRowActivation } from "./swipe-row-activation";
 import { SwipeableScrollGateProvider, useSwipeableScrollGate } from "./thread-swipe-actions";
 import { useFabScroll } from "./FabScrollContext";
@@ -138,6 +144,12 @@ interface HomeScreenProps {
   readonly onNewThreadOnBranch: (thread: EnvironmentThreadShell) => void;
   readonly onNewThreadInProject: (project: EnvironmentProject) => void;
 }
+
+const HOME_LIST_MODE_OPTIONS = [
+  { value: "chats", label: "Chats" },
+  { value: "projects", label: "Projects" },
+] as const;
+type HomeListMode = (typeof HOME_LIST_MODE_OPTIONS)[number]["value"];
 
 const ESTIMATED_THREAD_LIST_V2_ROW_HEIGHT = 72;
 // Rows away from the viewport skip their swipe actions (see
@@ -248,6 +260,7 @@ export function HomeScreen(props: HomeScreenProps) {
   const usesNativeWorkspaceColumns = useNativeWorkspaceColumnsSupported();
   const workspace = useWorkspaceTabs();
   const [initialScrollOffset] = useState(() => workspace?.getScrollOffset("threads") ?? 0);
+  const [listMode, setListMode] = useState<HomeListMode>("chats");
   const primaryColumn = use(NativePrimaryColumnContext);
   const sidebarSurface = usePaneRole() === "sidebar" && primaryColumn !== null;
   const contentBackground = sidebarSurface ? "bg-drawer" : "bg-screen";
@@ -725,14 +738,97 @@ export function HomeScreen(props: HomeScreenProps) {
     );
   }
 
-  const listHeader = Platform.OS === "ios" ? undefined : <HomeTopContentSpacer />;
+  const devices = buildHomeDeviceSummaries({
+    environments: props.environments,
+    threads: props.threads,
+    machineByEnvironmentId,
+  });
+  const showDeviceCards = devices.length > 1;
+  const listGutter = sidebarSurface ? 8 : 0;
+  const homeHeader = (
+    <>
+      {Platform.OS === "ios" ? null : <HomeTopContentSpacer />}
+      {showDeviceCards ? (
+        <HomeDeviceCards
+          gutter={listGutter}
+          devices={devices}
+          selectedEnvironmentId={props.selectedEnvironmentId}
+          onEnvironmentChange={props.onEnvironmentChange}
+        />
+      ) : null}
+      <View className="px-4 pb-3">
+        <SegmentedControl
+          options={HOME_LIST_MODE_OPTIONS}
+          selected={listMode}
+          onSelect={setListMode}
+          size="compact"
+          role="tab"
+        />
+      </View>
+    </>
+  );
+  const listContentContainerStyle = {
+    paddingLeft: (contentSideInsets?.left ?? 0) + listGutter + androidListGutter,
+    paddingRight: (contentSideInsets?.right ?? 0) + listGutter + androidListGutter,
+    paddingBottom:
+      Platform.OS === "ios"
+        ? iosBottomClearance
+        : (workspace?.bottomClearance ??
+          Math.max(insets.bottom, 16) + (Platform.OS === "android" ? fabClearance : 88)),
+  };
+
+  if (listMode === "projects") {
+    const sections = buildHomeProjectSections({
+      scopes: pickableProjectGroups(
+        sortHomeProjectScopes({
+          scopes: projectScopes,
+          threads: props.threads,
+          pendingTasks: props.pendingTasks,
+          projectSortOrder: props.projectSortOrder,
+        }),
+      ),
+      threads: props.threads,
+      searchQuery: props.searchQuery,
+    });
+    return (
+      <View className={containerClassName}>
+        <ScreenContent surface="screen">
+          <View className={cn("flex-1", Platform.OS !== "android" && contentBackground)}>
+            <HomeScrollView
+              style={{ flex: 1 }}
+              contentInsetAdjustmentBehavior="never"
+              contentInset={Platform.OS === "ios" ? { top: contentTopInset } : undefined}
+              contentOffset={Platform.OS === "ios" ? { x: 0, y: -contentTopInset } : undefined}
+              showsVerticalScrollIndicator={false}
+              keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={listContentContainerStyle}
+            >
+              {homeHeader}
+              <HomeProjectList
+                sections={sections}
+                searchQuery={props.searchQuery}
+                onSelectThread={onSelectThread}
+                onNewThreadInProject={props.onNewThreadInProject}
+                onShowAllThreads={(projectKey) => {
+                  props.onProjectChange(projectKey);
+                  setListMode("chats");
+                }}
+              />
+            </HomeScrollView>
+          </View>
+        </ScreenContent>
+      </View>
+    );
+  }
 
   const v2ListHeader = (
     <>
-      {listHeader}
+      {homeHeader}
       {Platform.OS === "ios" && workspace ? (
         <ThreadListFilters
-          gutter={sidebarSurface ? 8 : 0}
+          gutter={listGutter}
+          showEnvironmentFilter={!showDeviceCards}
           environments={props.environments}
           projects={pickableProjectGroups(projectScopes).map((scope) => ({
             key: scope.key,
@@ -842,18 +938,7 @@ export function HomeScreen(props: HomeScreenProps) {
                 keyboardShouldPersistTaps="handled"
                 {...scrollGateHandlers}
                 scrollEventThrottle={16}
-                contentContainerStyle={{
-                  paddingLeft:
-                    (contentSideInsets?.left ?? 0) + (sidebarSurface ? 8 : 0) + androidListGutter,
-                  paddingRight:
-                    (contentSideInsets?.right ?? 0) + (sidebarSurface ? 8 : 0) + androidListGutter,
-                  paddingBottom:
-                    Platform.OS === "ios"
-                      ? iosBottomClearance
-                      : (workspace?.bottomClearance ??
-                        Math.max(insets.bottom, 16) +
-                          (Platform.OS === "android" ? fabClearance : 88)),
-                }}
+                contentContainerStyle={listContentContainerStyle}
               />
             </GestureDetector>
           </SwipeableScrollGateProvider>

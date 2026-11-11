@@ -147,3 +147,46 @@ export function sortHomeProjectScopes(input: {
     ),
   );
 }
+
+export interface HomeProjectSection {
+  readonly scope: HomeProjectScope;
+  /** Unarchived threads of the scope, most recently active first. */
+  readonly threads: ReadonlyArray<EnvironmentThreadShell>;
+}
+
+export function buildHomeProjectSections(input: {
+  readonly scopes: ReadonlyArray<HomeProjectScope>;
+  readonly threads: ReadonlyArray<EnvironmentThreadShell>;
+  readonly searchQuery: string;
+}): ReadonlyArray<HomeProjectSection> {
+  const query = input.searchQuery.trim().toLowerCase();
+  const threadsByProjectKey = new Map<string, EnvironmentThreadShell[]>();
+  for (const thread of input.threads) {
+    if (thread.archivedAt !== null) continue;
+    const key = scopedProjectKey(thread.environmentId, thread.projectId);
+    const bucket = threadsByProjectKey.get(key);
+    if (bucket) bucket.push(thread);
+    else threadsByProjectKey.set(key, [thread]);
+  }
+  return input.scopes.flatMap((scope) => {
+    const scopeThreads = scope.projectRefs.flatMap(
+      (ref) => threadsByProjectKey.get(scopedProjectKey(ref.environmentId, ref.projectId)) ?? [],
+    );
+    const titleMatches = query.length === 0 || scope.title.toLowerCase().includes(query);
+    const threads = titleMatches
+      ? scopeThreads
+      : scopeThreads.filter((thread) => thread.title.toLowerCase().includes(query));
+    if (!titleMatches && threads.length === 0) return [];
+    return [
+      {
+        scope,
+        threads: Arr.sort(
+          threads,
+          Order.mapInput(Order.flip(Order.Number), (thread: EnvironmentThreadShell) =>
+            getThreadSortTimestamp(thread, "updated_at"),
+          ),
+        ),
+      },
+    ];
+  });
+}

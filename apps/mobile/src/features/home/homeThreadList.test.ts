@@ -5,7 +5,12 @@ import type {
 import { EnvironmentId, ProjectId, ProviderInstanceId, ThreadId } from "@t3tools/contracts";
 import { describe, expect, it } from "vite-plus/test";
 
-import { buildHomeProjectScopes, findHomeProjectScope } from "./homeThreadList";
+import {
+  buildHomeProjectScopes,
+  buildHomeProjectSections,
+  findHomeProjectScope,
+} from "./homeThreadList";
+import { buildHomeDeviceSummaries } from "./home-device-summary";
 import { makeThreadShellFixture } from "../../test-fixtures";
 import { buildThreadListV2Items } from "../threads/threadListV2";
 
@@ -221,5 +226,95 @@ describe("home project scopes", () => {
     expect(findHomeProjectScope(scopes, "environment-local:project-target")).toBe(targetScope);
     expect(findHomeProjectScope(scopes, "environment-local:missing")).toBeNull();
     expect(findHomeProjectScope(scopes, null)).toBeNull();
+  });
+
+  it("lists each project's open threads newest first and narrows them by search", () => {
+    const environmentId = EnvironmentId.make("local");
+    const projects = [
+      makeProject({ environmentId, id: ProjectId.make("app"), title: "App" }),
+      makeProject({ environmentId, id: ProjectId.make("docs"), title: "Docs" }),
+    ];
+    const thread = (id: string, projectId: string, updatedAt: string, archivedAt?: string) =>
+      makeThread({
+        environmentId,
+        projectId: ProjectId.make(projectId),
+        id: ThreadId.make(id),
+        title: id,
+        updatedAt,
+        archivedAt: archivedAt ?? null,
+      });
+    const threads = [
+      thread("older", "app", "2026-06-01T00:00:00.000Z"),
+      thread("newer", "app", "2026-06-02T00:00:00.000Z"),
+      thread("archived", "app", "2026-06-03T00:00:00.000Z", "2026-06-04T00:00:00.000Z"),
+      thread("guide", "docs", "2026-06-01T00:00:00.000Z"),
+    ];
+    const scopes = buildHomeProjectScopes({
+      projects,
+      environmentId: null,
+      projectGroupingMode: "separate",
+    });
+    const titles = (searchQuery: string) =>
+      buildHomeProjectSections({ scopes, threads, searchQuery }).map((section) => [
+        section.scope.title,
+        section.threads.map((item) => item.title),
+      ]);
+
+    expect(titles("")).toEqual([
+      ["App", ["newer", "older"]],
+      ["Docs", ["guide"]],
+    ]);
+    // A project title match keeps all its threads; a thread match keeps only that thread.
+    expect(titles("docs")).toEqual([["Docs", ["guide"]]]);
+    expect(titles("OLD")).toEqual([["App", ["older"]]]);
+  });
+
+  it("summarises each device by what needs the user first, then by running work", () => {
+    const busy = EnvironmentId.make("busy");
+    const quiet = EnvironmentId.make("quiet");
+    const down = EnvironmentId.make("down");
+    const base = { projectId: ProjectId.make("p") };
+    const summaries = buildHomeDeviceSummaries({
+      environments: [
+        { environmentId: busy, label: "Busy", connectionState: "connected" },
+        { environmentId: quiet, label: "Quiet", connectionState: "connected" },
+        { environmentId: down, label: "Down", connectionState: "offline" },
+      ],
+      threads: [
+        makeThread({
+          ...base,
+          environmentId: busy,
+          id: ThreadId.make("asks"),
+          title: "asks",
+          hasPendingApprovals: true,
+        }),
+        makeThread({
+          ...base,
+          environmentId: busy,
+          id: ThreadId.make("archived-asks"),
+          title: "archived-asks",
+          hasPendingApprovals: true,
+          archivedAt: "2026-06-02T00:00:00.000Z",
+        }),
+        makeThread({
+          ...base,
+          environmentId: down,
+          id: ThreadId.make("stale"),
+          title: "stale",
+          hasPendingUserInput: true,
+        }),
+      ],
+      machineByEnvironmentId: new Map([[busy, "laptop"]]),
+    });
+
+    expect(summaries.map((device) => [device.label, device.status, device.attentionCount])).toEqual(
+      [
+        ["Busy", "attention", 1],
+        ["Quiet", "idle", 0],
+        ["Down", "offline", 1],
+      ],
+    );
+    expect(summaries[0]!.machineKind).toBe("laptop");
+    expect(summaries[1]!.machineKind).toBeNull();
   });
 });
