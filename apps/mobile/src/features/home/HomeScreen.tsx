@@ -673,7 +673,14 @@ export function HomeScreen(props: HomeScreenProps) {
     projectCount: props.projects.length,
   });
 
-  if (!hasAnyThreads) {
+  const visibleProjectGroups = pickableProjectGroups(projectScopes);
+  const showWorkspaceFilters = Platform.OS === "ios" && Boolean(workspace);
+  const showProjectPreview = showWorkspaceFilters && !hasSearchQuery;
+
+  if (
+    !hasAnyThreads &&
+    !(showWorkspaceFilters && (props.projects.length > 0 || props.selectedEnvironmentId !== null))
+  ) {
     return (
       <View className={containerClassName}>
         <ScreenContent surface={sidebarSurface ? "drawer" : "screen"}>
@@ -730,14 +737,16 @@ export function HomeScreen(props: HomeScreenProps) {
   const v2ListHeader = (
     <>
       {listHeader}
-      {Platform.OS === "ios" && workspace ? (
+      {showWorkspaceFilters ? (
         <ThreadListFilters
           gutter={sidebarSurface ? 8 : 0}
           environments={props.environments}
-          projects={pickableProjectGroups(projectScopes).map((scope) => ({
+          projects={visibleProjectGroups.map((scope) => ({
             key: scope.key,
             label: scope.title,
+            computerCount: new Set(scope.projectRefs.map((ref) => ref.environmentId)).size,
           }))}
+          showProjectPreview={showProjectPreview}
           selectedEnvironmentId={props.selectedEnvironmentId}
           selectedProjectKey={props.selectedProjectKey}
           onEnvironmentChange={props.onEnvironmentChange}
