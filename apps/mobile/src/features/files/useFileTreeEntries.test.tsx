@@ -182,6 +182,7 @@ vi.mock("../../components/ui/AppActivityIndicator", () => ({ AppActivityIndicato
 vi.mock("../../components/ui/AppSymbol", () => ({ SymbolView: Nothing }));
 vi.mock("../../components/ui/AppText", () => ({ AppText: Children }));
 vi.mock("../../components/PierreEntryIcon", () => ({ PierreEntryIcon: Nothing }));
+vi.mock("../../components/SpotIllustration", () => ({ SpotIllustration: Nothing }));
 vi.mock("../../lib/cn", () => ({ cn: () => "" }));
 
 import { FileTreeBrowser } from "./FileTreeBrowser";

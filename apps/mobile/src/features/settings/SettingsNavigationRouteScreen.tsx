@@ -12,7 +12,7 @@ import { AppText as Text } from "../../components/ui/AppText";
 import { IconButton } from "../../components/ui/IconButton";
 import { Button } from "../../components/ui/Button";
 import { ScreenScrollView } from "../../components/ui/ScreenScrollView";
-import { SymbolView } from "../../components/ui/AppSymbol";
+import { ListRowLayout } from "../../components/ui/ListRowLayout";
 import { mobilePreferencesAtom, updateMobilePreferencesAtom } from "../../state/preferences";
 import {
   NAVIGATION_TAB_ICONS,
@@ -50,70 +50,69 @@ export function SettingsNavigationRouteScreen() {
         </Text>
         <SettingsSection title="Tab order">
           {order.map((tab, index) => (
-            <View key={tab} className="flex-row items-center gap-3 px-4 py-3">
-              <SymbolView
-                name={NAVIGATION_TAB_ICONS[tab]}
-                size={22}
-                tintColorClassName="accent-icon"
-              />
-              <View className="flex-1">
-                <Text>{WORKSPACE_TAB_LABELS[tab]}</Text>
-                <Text className="text-xs text-foreground-muted">
-                  {hidden.includes(tab)
-                    ? "Hidden"
-                    : enabled.indexOf(tab) < capacity
-                      ? `Tab ${enabled.indexOf(tab) + 1}`
-                      : "In Settings"}
-                </Text>
-              </View>
-              <IconButton
-                icon={hidden.includes(tab) ? "eye.slash" : "eye"}
-                accessibilityLabel={`${hidden.includes(tab) ? "Show" : "Hide"} ${WORKSPACE_TAB_LABELS[tab]}`}
-                disabled={!ready}
-                onPress={() =>
-                  save({
-                    transform: (current) => ({
-                      hiddenNavigationTabs: toggleNavigationTabVisibility(
-                        current.hiddenNavigationTabs,
-                        tab,
-                      ),
-                    }),
-                  })
-                }
-              />
-              <IconButton
-                icon="arrow.up"
-                accessibilityLabel={`Move ${WORKSPACE_TAB_LABELS[tab]} up`}
-                disabled={!ready || index === 0}
-                onPress={() =>
-                  save({
-                    transform: (current) => ({
-                      navigationTabOrder: moveNavigationTab(
-                        resolveWorkspaceTabOrder(current.navigationTabOrder),
-                        tab,
-                        index - 1,
-                      ),
-                    }),
-                  })
-                }
-              />
-              <IconButton
-                icon="arrow.down"
-                accessibilityLabel={`Move ${WORKSPACE_TAB_LABELS[tab]} down`}
-                disabled={!ready || index === order.length - 1}
-                onPress={() =>
-                  save({
-                    transform: (current) => ({
-                      navigationTabOrder: moveNavigationTab(
-                        resolveWorkspaceTabOrder(current.navigationTabOrder),
-                        tab,
-                        index + 1,
-                      ),
-                    }),
-                  })
-                }
-              />
-            </View>
+            <ListRowLayout
+              key={tab}
+              icon={NAVIGATION_TAB_ICONS[tab]}
+              label={WORKSPACE_TAB_LABELS[tab]}
+              description={
+                hidden.includes(tab)
+                  ? "Hidden"
+                  : enabled.indexOf(tab) < capacity
+                    ? `Tab ${enabled.indexOf(tab) + 1}`
+                    : "In Settings"
+              }
+              accessory={
+                <View className="flex-row items-center gap-3">
+                  <IconButton
+                    icon={hidden.includes(tab) ? "eye.slash" : "eye"}
+                    accessibilityLabel={`${hidden.includes(tab) ? "Show" : "Hide"} ${WORKSPACE_TAB_LABELS[tab]}`}
+                    disabled={!ready}
+                    onPress={() =>
+                      save({
+                        transform: (current) => ({
+                          hiddenNavigationTabs: toggleNavigationTabVisibility(
+                            current.hiddenNavigationTabs,
+                            tab,
+                          ),
+                        }),
+                      })
+                    }
+                  />
+                  <IconButton
+                    icon="arrow.up"
+                    accessibilityLabel={`Move ${WORKSPACE_TAB_LABELS[tab]} up`}
+                    disabled={!ready || index === 0}
+                    onPress={() =>
+                      save({
+                        transform: (current) => ({
+                          navigationTabOrder: moveNavigationTab(
+                            resolveWorkspaceTabOrder(current.navigationTabOrder),
+                            tab,
+                            index - 1,
+                          ),
+                        }),
+                      })
+                    }
+                  />
+                  <IconButton
+                    icon="arrow.down"
+                    accessibilityLabel={`Move ${WORKSPACE_TAB_LABELS[tab]} down`}
+                    disabled={!ready || index === order.length - 1}
+                    onPress={() =>
+                      save({
+                        transform: (current) => ({
+                          navigationTabOrder: moveNavigationTab(
+                            resolveWorkspaceTabOrder(current.navigationTabOrder),
+                            tab,
+                            index + 1,
+                          ),
+                        }),
+                      })
+                    }
+                  />
+                </View>
+              }
+            />
           ))}
         </SettingsSection>
         <Button

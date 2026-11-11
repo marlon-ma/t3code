@@ -5,6 +5,7 @@ import {
   AuthProvidersManageScope,
   AuthOrchestrationReadScope,
   managedUpdatesDenial,
+  resolveEnvironmentMachineKind,
   type EnvironmentId,
   type ServerProvider,
 } from "@t3tools/contracts";
@@ -18,6 +19,8 @@ import { Linking, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText as Text } from "../../components/ui/AppText";
+import { DeviceIllustration } from "../../components/DeviceIllustration";
+import { WorkspaceHeading } from "../../components/ui/WorkspaceHeading";
 import { ProviderIcon } from "../../components/ProviderIcon";
 import { ScreenScrollView } from "../../components/ui/ScreenScrollView";
 import { appAtomRegistry } from "../../state/atom-registry";
@@ -185,9 +188,29 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
           </Text>
         ) : (
           <>
+            <View className="items-center gap-1 pb-1">
+              <DeviceIllustration
+                kind={config ? resolveEnvironmentMachineKind(config) : null}
+                status={connected ? "idle" : "offline"}
+                width={132}
+              />
+              <WorkspaceHeading textRole="title" className="mt-2 text-center" numberOfLines={2}>
+                {environment.environmentLabel}
+              </WorkspaceHeading>
+              <Text className="text-center text-sm text-foreground-muted">
+                {connected
+                  ? version
+                    ? `Connected · T3 Code ${version}`
+                    : "Connected"
+                  : environment.isEnabled
+                    ? "Not connected"
+                    : "Turned off"}
+              </Text>
+            </View>
             <SettingsSection title="Connection">
               <ConnectionEnvironmentRow
                 environment={environment}
+                hideIllustration
                 expanded={connectionExpanded}
                 onToggle={() => setConnectionExpanded((value) => !value)}
                 onReconnect={connections.onReconnectEnvironment}

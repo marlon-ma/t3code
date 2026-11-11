@@ -2,6 +2,9 @@ import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScroll
 import { AppText as Text, AppTextInput } from "../../components/ui/AppText";
 import { Button } from "../../components/ui/Button";
 import { ProjectFavicon } from "../../components/ProjectFavicon";
+import { SpotIllustration } from "../../components/SpotIllustration";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { WorkspaceHeading } from "../../components/ui/WorkspaceHeading";
 import * as Dialog from "../../components/ui/Dialog";
 import { AuthOrchestrationOperateScope } from "@t3tools/contracts";
 import { planProjectRemoval } from "@t3tools/client-runtime/state/projects";
@@ -93,14 +96,19 @@ export function SettingsProjectOverviewRouteScreen() {
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
       >
         {selectedProjectKey === null ? (
-          <Text className="px-2 text-base text-foreground-muted">
-            Choose a project with the filter above to manage its name, checkouts and removal.
-          </Text>
+          <EmptyState
+            variant="plain"
+            illustration={<SpotIllustration kind="project" />}
+            title="No project selected"
+            detail="Choose a project with the filter above to manage its name, checkouts and removal."
+          />
         ) : !group || members.length === 0 ? (
-          <Text className="px-2 text-base text-foreground-muted">
-            This project has no checkout on the selected connected environments. Change the filter
-            above.
-          </Text>
+          <EmptyState
+            variant="plain"
+            illustration={<SpotIllustration kind="project" />}
+            title="No checkout here"
+            detail="This project has no checkout on the selected connected environments. Change the filter above."
+          />
         ) : (
           <ProjectOverviewContent
             key={`${selectedProjectKey}:${members.map((member) => member.id).join(",")}`}
@@ -310,9 +318,9 @@ function ProjectOverviewContent(props: {
           size={48}
         />
         <View className="min-w-0 flex-1">
-          <Text className="text-xl font-t3-semibold text-foreground" numberOfLines={2}>
+          <WorkspaceHeading textRole="title" className="text-foreground" numberOfLines={2}>
             {displayName}
-          </Text>
+          </WorkspaceHeading>
           <Text className="text-sm text-foreground-muted">
             {props.members.length === 1 ? "1 checkout" : `${props.members.length} checkouts`}
           </Text>
@@ -449,7 +457,7 @@ function RemoveCheckoutAction(props: {
       accessibilityLabel={`Remove checkout ${props.member.workspaceRoot}`}
       disabled={props.disabled || !canRemove}
       onPress={props.onPress}
-      className="self-start rounded-full border border-border bg-card px-3 py-1.5 disabled:opacity-40"
+      className="self-start rounded-full bg-danger-foreground/10 px-3 py-1.5 active:opacity-70 disabled:opacity-40"
     >
       <Text className="font-t3-medium text-xs text-danger-foreground">Remove checkout</Text>
     </Pressable>

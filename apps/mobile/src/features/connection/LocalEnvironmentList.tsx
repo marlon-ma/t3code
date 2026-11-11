@@ -2,7 +2,7 @@ import type { EnvironmentId } from "@t3tools/contracts";
 import type { ComponentProps } from "react";
 import { View } from "react-native";
 
-import { SymbolView } from "../../components/ui/AppSymbol";
+import { DeviceIllustration } from "../../components/DeviceIllustration";
 import { AppText as Text } from "../../components/ui/AppText";
 import { ConnectionEnvironmentRow } from "./ConnectionEnvironmentRow";
 
@@ -25,16 +25,9 @@ export function LocalEnvironmentList({
     return (
       <View
         collapsable={false}
-        className="items-center gap-3 rounded-[24px] bg-grouped-card px-6 py-8"
+        className="items-center gap-3 rounded-[24px] border-continuous bg-grouped-card px-6 py-8"
       >
-        <View className="h-12 w-12 items-center justify-center rounded-[16px] bg-subtle">
-          <SymbolView
-            name="point.3.connected.trianglepath.dotted"
-            size={20}
-            tintColorClassName="accent-icon-muted"
-            type="monochrome"
-          />
-        </View>
+        <DeviceIllustration kind="laptop" status="offline" width={104} />
         <Text className="text-center text-sm leading-normal text-foreground-muted">
           No environments connected yet.{"\n"}Tap{" "}
           <Text className="font-t3-bold text-foreground">+</Text> to add one.
@@ -44,7 +37,10 @@ export function LocalEnvironmentList({
   }
 
   return (
-    <View collapsable={false} className="overflow-hidden rounded-[24px] bg-grouped-card">
+    <View
+      collapsable={false}
+      className="overflow-hidden rounded-[24px] border-continuous bg-grouped-card"
+    >
       {environments.map((environment) => (
         <View key={environment.environmentId} collapsable={false}>
           <ConnectionEnvironmentRow

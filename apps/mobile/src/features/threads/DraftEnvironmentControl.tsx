@@ -5,7 +5,8 @@ import { EnvironmentMachineSymbol } from "../../components/EnvironmentMachineSym
 import { AppText as Text } from "../../components/ui/AppText";
 import { SymbolView } from "../../components/ui/AppSymbol";
 
-import { ConnectionStatusDot } from "../connection/ConnectionStatusDot";
+import { StatusDot } from "../../components/ui/StatusDot";
+import { connectionActivityTone } from "../connection/connectionTone";
 
 export function DraftEnvironmentControl(props: {
   readonly label: string;
@@ -28,11 +29,11 @@ export function DraftEnvironmentControl(props: {
         size={13}
         tintColorClassName="accent-icon-muted"
       />
+      <StatusDot tone={connectionActivityTone(props.connectionState)} size={6} />
       <Text className="shrink text-sm text-foreground-muted" numberOfLines={1}>
         on {props.label}
       </Text>
       <SymbolView name="chevron.right" size={11} tintColorClassName="accent-icon-muted" />
-      {disconnected ? <ConnectionStatusDot state="error" pulse={false} size={6} /> : null}
     </Pressable>
   );
 }

@@ -2,6 +2,7 @@ import type { EnvironmentId } from "@t3tools/contracts";
 import { View } from "react-native";
 
 import { EmptyState } from "../../components/ui/EmptyState";
+import { SpotIllustration } from "../../components/SpotIllustration";
 import { environmentCatalog } from "../../connection/catalog";
 import type { AssetUrlFailureReason } from "../../state/asset-url-state";
 import { useAtomCommand } from "../../state/use-atom-command";
@@ -43,6 +44,7 @@ export function WorkspaceFilePreviewError(props: {
   return (
     <View className="flex-1 items-center justify-center bg-sheet px-6">
       <EmptyState
+        illustration={<SpotIllustration kind="file" />}
         title="Preview unavailable"
         detail="This file may be missing, unsupported, or unavailable on this environment."
         actionLabel="Try again"

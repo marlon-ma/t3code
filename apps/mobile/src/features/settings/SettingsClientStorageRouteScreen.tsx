@@ -10,6 +10,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText as Text } from "../../components/ui/AppText";
 import { SymbolView } from "../../components/ui/AppSymbol";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { WorkspaceHeading } from "../../components/ui/WorkspaceHeading";
 import { ENVIRONMENT_MACHINE_SYMBOLS } from "../../components/EnvironmentMachineSymbol";
 import {
   clearClientCacheAtom,
@@ -87,7 +89,9 @@ export function SettingsClientStorageRouteScreen() {
                 type="monochrome"
                 weight="regular"
               />
-              <Text className="text-center text-base text-foreground">Storage unavailable</Text>
+              <WorkspaceHeading textRole="headline" className="text-center text-foreground">
+                Storage unavailable
+              </WorkspaceHeading>
               <Text className="text-center text-sm text-foreground-muted">
                 Restart the app and try again.
               </Text>
@@ -117,19 +121,20 @@ export function SettingsClientStorageRouteScreen() {
               />
             ))
           ) : (
-            <View className="items-center gap-2 px-6 py-8">
-              <SymbolView
-                name="checkmark.circle"
-                size={28}
-                tintColorClassName="accent-icon"
-                type="monochrome"
-                weight="regular"
-              />
-              <Text className="text-center text-base text-foreground">No cached data</Text>
-              <Text className="text-center text-sm text-foreground-muted">
-                Offline cache records will appear here after environments are used.
-              </Text>
-            </View>
+            <EmptyState
+              variant="plain"
+              illustration={
+                <SymbolView
+                  name="checkmark.circle"
+                  size={28}
+                  tintColorClassName="accent-icon"
+                  type="monochrome"
+                  weight="regular"
+                />
+              }
+              title="No cached data"
+              detail="Offline cache records will appear here after environments are used."
+            />
           )}
         </SettingsSection>
 
@@ -168,7 +173,7 @@ function CacheEnvironmentRow(props: {
   readonly onClear: () => void;
 }) {
   return (
-    <View className={props.first ? undefined : "border-t border-border"}>
+    <View className={props.first ? undefined : "border-t border-border-subtle"}>
       <SettingsActionRow
         icon={ENVIRONMENT_MACHINE_SYMBOLS[props.machine]}
         label={props.environmentLabel}

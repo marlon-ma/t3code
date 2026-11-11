@@ -11,6 +11,7 @@ import { AppText as Text } from "../../components/ui/AppText";
 import { SymbolView } from "../../components/ui/AppSymbol";
 import { Button } from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { SpotIllustration } from "../../components/SpotIllustration";
 import { IconButton } from "../../components/ui/IconButton";
 import { Menu } from "../../components/ui/Menu";
 import { RowPressable } from "../../components/ui/RowPressable";
@@ -185,6 +186,7 @@ function NoVisibleFiles({ files }: { readonly files: ChangedFiles }) {
   if (parsed.kind === "files") {
     return parsed.files.length === 0 && filter.hiddenCount > 0 ? (
       <EmptyState
+        illustration={<SpotIllustration kind="file" />}
         title={diff.nextCursor ? "No non-test files loaded yet" : "Only test files changed"}
         detail="Test files are hidden from this review."
         action={<Button label="Show test files" tone="contrast" onPress={filter.showAll} />}

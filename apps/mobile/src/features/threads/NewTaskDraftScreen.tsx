@@ -93,7 +93,8 @@ import { incomingShareImports, useIncomingShare } from "../sharing/IncomingShare
 import { idleShareFlagAtom, idleShareImportPhaseAtom } from "./incomingShareImport";
 import { newTaskFlowKey } from "./new-task-flow-state";
 import { EnvironmentMachineSymbol } from "../../components/EnvironmentMachineSymbol";
-import { ConnectionStatusDot } from "../connection/ConnectionStatusDot";
+import { StatusDot } from "../../components/ui/StatusDot";
+import { connectionActivityTone } from "../connection/connectionTone";
 import { appAtomRegistry } from "../../state/atom-registry";
 
 import { readEnvironmentScope, useEnvironmentScope } from "../../state/session";
@@ -736,7 +737,7 @@ export function NewTaskDraftScreen(props: {
   ) : null;
   const hero = flow.isScratchDraft ? (
     <View className="items-center gap-2 px-6" testID="new-task-hero">
-      <Text className="text-center text-2xl font-t3-medium tracking-tight text-foreground">
+      <Text className="text-center text-2xl font-workspace tracking-tight text-foreground">
         What should we work on?
       </Text>
       <View className="flex-row flex-wrap items-center justify-center gap-x-1">
@@ -756,11 +757,11 @@ export function NewTaskDraftScreen(props: {
   ) : (
     <View className="items-center gap-6 px-6" testID="new-task-hero">
       <View className="w-full items-center gap-1.5">
-        <Text className="text-center text-2xl font-t3-medium tracking-tight text-foreground">
+        <Text className="text-center text-2xl font-workspace tracking-tight text-foreground">
           What should we build
         </Text>
         <View className="max-w-full flex-row items-center justify-center">
-          <Text className="text-2xl font-t3-medium tracking-tight text-foreground">in </Text>
+          <Text className="text-2xl font-workspace tracking-tight text-foreground">in </Text>
           <Pressable
             accessibilityHint="Opens the project picker"
             accessibilityLabel={selectedProjectLabel ?? selectedProject.title}
@@ -770,13 +771,13 @@ export function NewTaskDraftScreen(props: {
             className="min-w-0 max-w-[250px] border-b border-foreground-muted active:opacity-65"
           >
             <Text
-              className="text-2xl font-t3-medium tracking-tight text-foreground"
+              className="text-2xl font-workspace tracking-tight text-foreground"
               numberOfLines={1}
             >
               {selectedProjectLabel ?? selectedProject.title}
             </Text>
           </Pressable>
-          <Text className="text-2xl font-t3-medium tracking-tight text-foreground">?</Text>
+          <Text className="text-2xl font-workspace tracking-tight text-foreground">?</Text>
         </View>
       </View>
 
@@ -853,11 +854,7 @@ export function NewTaskDraftScreen(props: {
           label={selectedEnvironmentLabel}
           maxWidth="100%"
           onPress={() => openContextPicker("NewTaskEnvironment")}
-          suffix={
-            connectionState === "connected" ? null : (
-              <ConnectionStatusDot state="error" pulse={false} size={6} />
-            )
-          }
+          suffix={<StatusDot tone={connectionActivityTone(connectionState)} size={6} />}
         />
       </View>
     </View>

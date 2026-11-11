@@ -60,7 +60,8 @@ export function PullRequestStackCard(props: {
                   title={layer.title ?? layer.headBranch}
                   icon={status.icon}
                   tint={status.tint}
-                  value={selected ? "Current" : status.label}
+                  value={selected ? "Current" : undefined}
+                  accessibilityLabel={`${layer.title ?? layer.headBranch}, ${selected ? "current" : status.label}, #${layer.number}, ${index + 1} of ${stack.layers.length}`}
                   detail={`#${layer.number} · ${index + 1} of ${stack.layers.length}`}
                   onPress={
                     selected

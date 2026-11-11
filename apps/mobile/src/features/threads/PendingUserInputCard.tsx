@@ -20,6 +20,7 @@ import Animated, {
 import { SymbolView } from "../../components/ui/AppSymbol";
 import { AppText as Text } from "../../components/ui/AppText";
 import { ControlPill } from "../../components/ui/ControlPill";
+import { StatusDot } from "../../components/ui/StatusDot";
 import { cn } from "../../lib/cn";
 import { resolveMarkdownLinkPresentation } from "../../lib/markdownLinks";
 import { SelectableMarkdownText } from "../../native/SelectableMarkdownText";
@@ -174,7 +175,7 @@ export function PendingUserInputCard(props: PendingUserInputCardProps) {
       pointerEvents={props.collapsed ? "auto" : "none"}
       accessibilityElementsHidden={!props.collapsed}
       importantForAccessibility={props.collapsed ? "auto" : "no-hide-descendants"}
-      className="flex-row items-center gap-2 rounded-full border border-border bg-card-alt py-1.5 pl-4 pr-1.5"
+      className="flex-row items-center gap-2 rounded-full bg-warning py-1.5 pl-4 pr-1.5"
     >
       <Pressable
         accessibilityRole="button"
@@ -184,7 +185,8 @@ export function PendingUserInputCard(props: PendingUserInputCardProps) {
         onPress={props.onToggleCollapsed}
         className="min-h-10 flex-1 flex-row items-center gap-2 active:opacity-70"
       >
-        <Text className="font-t3-bold text-2xs uppercase tracking-[1.1px] text-foreground-secondary">
+        <StatusDot tone="attention" />
+        <Text className="font-t3-bold text-2xs uppercase tracking-[1.1px] text-warning-foreground">
           User input needed
         </Text>
         <Text className="font-sans text-xs text-foreground-muted">
@@ -194,7 +196,7 @@ export function PendingUserInputCard(props: PendingUserInputCardProps) {
         <SymbolView
           name="chevron.up"
           size={12}
-          tintColorClassName={"accent-icon-subtle"}
+          tintColorClassName={"accent-warning-foreground"}
           type="monochrome"
         />
       </Pressable>
@@ -216,7 +218,7 @@ export function PendingUserInputCard(props: PendingUserInputCardProps) {
       pointerEvents={props.collapsed ? "none" : "auto"}
       accessibilityElementsHidden={props.collapsed}
       importantForAccessibility={props.collapsed ? "no-hide-descendants" : "auto"}
-      className="overflow-hidden gap-2.5 rounded-[20px] border border-border bg-card-alt p-4"
+      className="overflow-hidden gap-2.5 rounded-3xl border-continuous bg-warning p-4"
       style={cardAnimatedStyle}
     >
       <Pressable
@@ -226,16 +228,21 @@ export function PendingUserInputCard(props: PendingUserInputCardProps) {
         className="flex-row items-start gap-2"
       >
         <View className="flex-1 gap-2.5">
-          <Text className="font-t3-bold text-2xs uppercase tracking-[1.1px] text-foreground-secondary">
-            User input needed
+          <View className="flex-row items-center gap-1.5">
+            <StatusDot tone="attention" />
+            <Text className="font-t3-bold text-2xs uppercase tracking-[1.1px] text-warning-foreground">
+              User input needed
+            </Text>
+          </View>
+          <Text className="font-workspace text-lg text-foreground">
+            Fill in the pending answers
           </Text>
-          <Text className="font-t3-bold text-lg text-foreground">Fill in the pending answers</Text>
         </View>
-        <View className="h-8 w-8 items-center justify-center rounded-full bg-subtle-strong">
+        <View className="h-8 w-8 items-center justify-center rounded-full bg-warning-foreground/10">
           <SymbolView
             name="chevron.down"
             size={13}
-            tintColorClassName={"accent-icon-subtle"}
+            tintColorClassName={"accent-warning-foreground"}
             type="monochrome"
           />
         </View>
@@ -284,10 +291,8 @@ export function PendingUserInputCard(props: PendingUserInputCardProps) {
                       accessibilityRole={question.multiSelect ? "checkbox" : "radio"}
                       accessibilityState={{ checked: selected, disabled: responseDisabled }}
                       disabled={responseDisabled}
-                      className={cn(
-                        "min-h-12 w-full rounded-2xl border px-3.5 py-3",
-                        selected ? "border-primary bg-primary/10" : "border-border bg-input",
-                      )}
+                      // The opaque base keeps the accent wash from mixing with the card's own tint.
+                      className="w-full overflow-hidden rounded-2xl border-continuous bg-card-alt"
                       onPress={() =>
                         props.onSelectOption(
                           props.pendingUserInput.requestId,
@@ -296,7 +301,12 @@ export function PendingUserInputCard(props: PendingUserInputCardProps) {
                         )
                       }
                     >
-                      <View className="min-w-0 flex-1 gap-0.5">
+                      <View
+                        className={cn(
+                          "min-h-12 justify-center gap-0.5 px-3.5 py-3",
+                          selected && "bg-primary/12",
+                        )}
+                      >
                         <Text
                           className={cn(
                             "font-t3-bold text-sm",

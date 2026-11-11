@@ -27,7 +27,7 @@ import { AppBar } from "../../components/ui/AppBar";
 import { ScreenContent } from "../../components/ui/ScreenContent";
 import { SymbolView } from "../../components/ui/AppSymbol";
 import { AppText as Text } from "../../components/ui/AppText";
-import { EnvironmentMachineSymbol } from "../../components/EnvironmentMachineSymbol";
+import { DeviceIllustration } from "../../components/DeviceIllustration";
 import { ThemedSwitch } from "../../components/ui/ThemedSwitch";
 import { cn } from "../../lib/cn";
 import { useEnvironmentScope } from "../../state/session";
@@ -43,7 +43,8 @@ import { setPendingConnectionError } from "../../state/use-remote-environment-re
 
 import { useEnvironmentPresentation } from "../../state/presentation";
 import { useRemoteConnections } from "../../state/use-remote-environment-registry";
-import { ConnectionStatusDot } from "../connection/ConnectionStatusDot";
+import { StatusDot } from "../../components/ui/StatusDot";
+import { connectionActivityTone } from "../connection/connectionTone";
 import {
   ConnectionDiagnosisDetails,
   useConnectionDiagnosis,
@@ -69,7 +70,13 @@ function EnvironmentPickerRow(props: {
     diagnosis?.headline ??
     (connection ? environmentStatusText({ ...connection, error: null }) : "Offline");
   return (
-    <View className={cn("bg-grouped-card", !props.isLast && "border-b border-border-subtle")}>
+    <View
+      className={cn(
+        // The chosen environment is marked by a wash of the accent, not an outline.
+        props.selected ? "bg-primary/12" : "bg-grouped-card",
+        !props.isLast && "border-b border-border-subtle",
+      )}
+    >
       <View className="flex-row items-center">
         <Pressable
           accessibilityRole="radio"
@@ -79,24 +86,34 @@ function EnvironmentPickerRow(props: {
           onPress={props.onPress}
           className="min-h-16 flex-1 flex-row items-center gap-3 px-4 py-3 active:bg-subtle"
         >
-          <EnvironmentMachineSymbol
+          <DeviceIllustration
             kind={resolveEnvironmentMachineKind(presentation?.serverConfig ?? null)}
-            size={20}
-            tintColorClassName="accent-icon-muted"
+            status={connection?.phase === "connected" ? "idle" : "offline"}
+            width={48}
           />
           <View className="min-w-0 flex-1 gap-1">
-            <Text className="text-base font-t3-medium text-foreground" numberOfLines={1}>
-              {props.title}
-            </Text>
             <View className="flex-row items-center gap-1.5">
-              <ConnectionStatusDot state={connection?.phase ?? "offline"} pulse={false} size={6} />
-              <Text className="shrink text-xs text-foreground-muted" numberOfLines={2}>
-                {status}
+              <StatusDot tone={connectionActivityTone(connection?.phase ?? "offline")} />
+              <Text
+                className="min-w-0 shrink text-base font-t3-medium text-foreground"
+                numberOfLines={1}
+              >
+                {props.title}
               </Text>
             </View>
+            {/* A healthy connection is the green dot alone; anything else explains itself. */}
+            {connection?.phase === "connected" && !diagnosis ? null : (
+              <Text className="text-xs text-foreground-muted" numberOfLines={2}>
+                {status}
+              </Text>
+            )}
           </View>
           {props.selected ? (
-            <SymbolView name="checkmark" size={16} tintColorClassName="accent-icon" />
+            <SymbolView
+              name="checkmark"
+              size={16}
+              tintColorClassName={Platform.OS === "android" ? "accent-icon" : "accent-primary-text"}
+            />
           ) : null}
         </Pressable>
         <Pressable
@@ -168,7 +185,7 @@ function PickerSurface(props: { readonly children: ReactNode }) {
       className={
         Platform.OS === "android"
           ? "overflow-hidden rounded-[28px] bg-grouped-card"
-          : "overflow-hidden rounded-2xl bg-grouped-card"
+          : "overflow-hidden rounded-[24px] border-continuous bg-grouped-card"
       }
     >
       {props.children}
@@ -394,7 +411,7 @@ export function BranchPickerScreen(props: {
     <View
       className={cn(
         "mb-3 overflow-hidden",
-        Platform.OS === "android" ? "rounded-[28px]" : "rounded-2xl",
+        Platform.OS === "android" ? "rounded-[28px]" : "rounded-[24px] border-continuous",
       )}
     >
       <ToggleRow

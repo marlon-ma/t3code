@@ -384,6 +384,8 @@ export interface ThreadListV2ThreadListItem {
   readonly snoozeWakeLabelText: string | undefined;
   readonly timeLabel: string;
   readonly snoozePresetMinute: string | undefined;
+  /** First row of a run of rows; with `showTrailingDivider` false it is also the last. */
+  readonly startsGroup: boolean;
   readonly showTrailingDivider: boolean;
   /** Include queued state in item equality; outbox writes do not update thread shells. */
   readonly hasQueuedMessages: boolean;
@@ -396,6 +398,7 @@ export interface ThreadListV2PendingListItem {
   readonly key: string;
   readonly pendingTask: PendingNewTask;
   readonly showPendingDivider: boolean;
+  readonly startsGroup: boolean;
   readonly showTrailingDivider: boolean;
 }
 
@@ -461,6 +464,7 @@ export function threadListV2ListItemsAreEqual(
         previous.snoozeWakeLabelText === item.snoozeWakeLabelText &&
         previous.timeLabel === item.timeLabel &&
         previous.snoozePresetMinute === item.snoozePresetMinute &&
+        previous.startsGroup === item.startsGroup &&
         previous.showTrailingDivider === item.showTrailingDivider &&
         previous.hasQueuedMessages === item.hasQueuedMessages &&
         previous.canMoveUp === item.canMoveUp &&
@@ -472,6 +476,7 @@ export function threadListV2ListItemsAreEqual(
         previous.key === item.key &&
         previous.pendingTask === item.pendingTask &&
         previous.showPendingDivider === item.showPendingDivider &&
+        previous.startsGroup === item.startsGroup &&
         previous.showTrailingDivider === item.showTrailingDivider
       );
     case "v2-working-shelf":
@@ -561,6 +566,7 @@ export function buildThreadListV2ListItems(input: {
       snoozeWakeLabelText,
       timeLabel: resolveThreadListV2ItemTimeLabel(item, snoozeWakeLabelText !== undefined),
       snoozePresetMinute,
+      startsGroup: false,
       showTrailingDivider: false,
       hasQueuedMessages:
         queuedThreadKeys?.has(`${item.thread.environmentId}:${item.thread.id}`) === true,
@@ -573,6 +579,7 @@ export function buildThreadListV2ListItems(input: {
     key: `v2-${pendingTask.key}`,
     pendingTask,
     showPendingDivider: index === 0,
+    startsGroup: false,
     showTrailingDivider: false,
   }));
   const workingCount = input.workingCount ?? 0;
@@ -618,12 +625,16 @@ export function buildThreadListV2ListItems(input: {
   }
   return result.map((entry, index) => {
     if (entry.type !== "v2-thread" && entry.type !== "v2-pending") return entry;
+    const previous = result[index - 1];
     const next = result[index + 1];
+    const startsGroup =
+      (previous?.type !== "v2-thread" && previous?.type !== "v2-pending") ||
+      (entry.type === "v2-pending" && entry.showPendingDivider);
     const showTrailingDivider =
       next?.type === "v2-thread" || (next?.type === "v2-pending" && !next.showPendingDivider);
-    return showTrailingDivider === entry.showTrailingDivider
+    return showTrailingDivider === entry.showTrailingDivider && startsGroup === entry.startsGroup
       ? entry
-      : { ...entry, showTrailingDivider };
+      : { ...entry, startsGroup, showTrailingDivider };
   });
 }
 

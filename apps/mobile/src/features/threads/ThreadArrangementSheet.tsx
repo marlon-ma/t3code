@@ -545,7 +545,7 @@ function ThreadArrangementSheet(props: { onClose: () => void }) {
                                 setExpanded((value) => ({ ...value, [section]: !value[section] }));
                             }}
                           >
-                            <Text className="text-sm font-t3-semibold text-foreground-muted">
+                            <Text className="font-workspace text-sm text-foreground-muted">
                               {item.section[0]!.toUpperCase() + item.section.slice(1)} (
                               {item.section === "settled"
                                 ? settledCount
@@ -561,7 +561,7 @@ function ThreadArrangementSheet(props: { onClose: () => void }) {
                 {visiblePreview ? (
                   <Animated.View
                     pointerEvents="none"
-                    className="absolute left-5 right-5 justify-center rounded-xl border border-border bg-screen px-4"
+                    className="absolute left-5 right-5 justify-center rounded-2xl border-continuous bg-grouped-card px-4"
                     style={{ top: 0, height: rowHeight, transform: [{ translateY }] }}
                   >
                     <Text

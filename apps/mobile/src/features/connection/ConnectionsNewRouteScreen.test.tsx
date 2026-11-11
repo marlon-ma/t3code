@@ -50,6 +50,7 @@ vi.mock("../../components/ui/AppText", () => ({
   AppTextInput: () => null,
 }));
 vi.mock("../../components/ui/FrostedCutout", () => ({ FrostedCutout: () => null }));
+vi.mock("../../components/DeviceIllustration", () => ({ DeviceIllustration: () => null }));
 vi.mock("../../components/ui/AppSymbol", () => ({ SymbolView: () => null }));
 vi.mock("../../lib/useUniwindTheme", () => ({ useUniwindTheme: () => ({}) }));
 vi.mock("../settings/appearance/AppearancePreferencesProvider", () => ({

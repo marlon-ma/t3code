@@ -32,6 +32,7 @@ import { useAtomCommand } from "../../state/use-atom-command";
 import { tryOpenExternalUrl } from "../../lib/openExternalUrl";
 import { Button } from "../../components/ui/Button";
 import { Chip } from "../../components/ui/Chip";
+import { StatusDot } from "../../components/ui/StatusDot";
 
 const LOCK_SYMBOL: AppSymbolName = { ios: "lock", android: "lock" };
 const PRIVATE_SYMBOL: AppSymbolName = { ios: "checkmark.shield", android: "lock" };
@@ -124,9 +125,14 @@ function PendingSecretRequestForm(props: {
   const link = secretRequestLink(item);
 
   return (
-    <View className="mb-3 gap-3 rounded-[20px] border border-border bg-card-alt p-4">
+    <View className="mb-3 gap-3 rounded-3xl border-continuous bg-warning p-4">
       <View className="gap-1">
-        <Text className="font-t3-bold text-base text-foreground">{item.label}</Text>
+        <View className="flex-row items-center gap-1.5">
+          <StatusDot tone="attention" />
+          <Text className="min-w-0 flex-1 font-workspace text-base text-foreground">
+            {item.label}
+          </Text>
+        </View>
         {item.reason.trim() ? (
           <Text className="font-sans text-sm leading-5 text-foreground-muted" selectable>
             {item.reason}

@@ -35,12 +35,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SegmentedControl } from "../../components/ui/SegmentedControl";
 import { useReduceMotionEnabled } from "../../lib/appState";
 import { AppText as Text } from "../../components/ui/AppText";
+import { EmptyState } from "../../components/ui/EmptyState";
 import { useWorkspaceSettledContentWidth } from "../layout/workspace-content-width";
 import { cn } from "../../lib/cn";
 import { SettingsScreen } from "../settings/components/SettingsScreen";
 import { useUsage, type EnvironmentUsageStatus } from "../../state/usage";
 import { SettingsSection } from "../settings/components/SettingsSection";
+import { UsageCard } from "./UsageCard";
 import { UsageDailyChart } from "./UsageDailyChart";
+import { UsageIllustration } from "./UsageIllustration";
 import { toggleUsageEnvironment } from "./usageEnvironmentSelection";
 import { useRefreshLimits } from "./UsageLimitsSection";
 import { UsageLimitsSection } from "./UsageLimitsPooled";
@@ -294,11 +297,16 @@ function UsageScreen(props: {
                     Scanning provider transcripts…
                   </Text>
                 ) : selectedEnvironments.length === 0 ? (
-                  <Text className="py-16 text-center text-base text-foreground-muted">
-                    {environments.length === 0
-                      ? "Connect an environment to see usage."
-                      : "Select an environment to see usage."}
-                  </Text>
+                  <EmptyState
+                    variant="plain"
+                    illustration={<UsageIllustration />}
+                    title="No usage to show"
+                    detail={
+                      environments.length === 0
+                        ? "Connect an environment to see usage."
+                        : "Select an environment to see usage."
+                    }
+                  />
                 ) : !canReadDiagnostics ? (
                   <View className="gap-2 py-16">
                     {selectedEnvironments.map((environment) => (
@@ -322,9 +330,9 @@ function UsageScreen(props: {
                       {wide ? (
                         <View className="flex-row gap-6">
                           <View className="w-72 gap-6">
-                            <View className="rounded-[24px] border-continuous bg-grouped-card p-4">
+                            <UsageCard>
                               <UsageSummary merged={merged} metric={metric} />
-                            </View>
+                            </UsageCard>
                             {providers}
                           </View>
                           <View className="min-w-0 flex-1">
@@ -430,11 +438,9 @@ function ChartCard(props: {
   );
 
   return (
-    <View
-      className={`gap-4 rounded-[24px] border-continuous bg-grouped-card p-4${props.fill ? " flex-1" : ""}`}
-    >
+    <UsageCard className={props.fill ? "flex-1 gap-4" : "gap-4"}>
       {props.title ? (
-        <Text className="text-sm font-t3-medium text-foreground">{props.title}</Text>
+        <Text className="font-workspace text-sm text-foreground">{props.title}</Text>
       ) : (
         <UsageSummary merged={merged} metric={metric} />
       )}
@@ -479,7 +485,7 @@ function ChartCard(props: {
           ))}
         </View>
       </View>
-    </View>
+    </UsageCard>
   );
 }
 
@@ -487,7 +493,7 @@ function UsageSummary(props: { readonly merged: MergedUsage; readonly metric: Us
   const { merged, metric } = props;
   return (
     <View className="gap-0.5">
-      <Text className="text-sm text-foreground-muted">
+      <Text className="font-workspace text-sm text-foreground-muted">
         {metric === "cost" ? "Raw token cost" : "Processed tokens"}
       </Text>
       <Text className="text-4xl font-t3-bold tabular-nums text-foreground">
@@ -556,7 +562,7 @@ function ProviderSection(props: {
               </Text>
             </View>
             {props.compact ? null : (
-              <View className="h-1 flex-row overflow-hidden rounded-full bg-subtle">
+              <View className="h-1 flex-row overflow-hidden rounded-full bg-primary/10">
                 <View
                   className="h-full rounded-full"
                   style={{ flex: share, backgroundColor: colors[provider.provider] }}
@@ -697,7 +703,7 @@ function ShareBar(props: {
   return (
     <View className="gap-3 p-4">
       <View className="flex-row items-baseline justify-between gap-3">
-        <Text className="text-sm text-foreground-muted">{props.label}</Text>
+        <Text className="font-workspace text-sm text-foreground-muted">{props.label}</Text>
         {props.aside ? (
           <Text className="text-sm tabular-nums text-foreground-muted">{props.aside}</Text>
         ) : null}
@@ -732,7 +738,7 @@ function MetricCell(props: {
 }) {
   return (
     <View className="gap-0.5 p-4" style={{ width: `${100 / props.columns}%` }}>
-      <Text className="text-sm text-foreground-muted">{props.label}</Text>
+      <Text className="font-workspace text-sm text-foreground-muted">{props.label}</Text>
       <Text className="text-xl font-t3-medium tabular-nums text-foreground">{props.value}</Text>
       <Text className="text-xs text-foreground-tertiary">{props.detail}</Text>
     </View>

@@ -63,6 +63,7 @@ import {
 } from "@t3tools/client-runtime/work-log/command-label";
 
 import { AppText as Text } from "../../components/ui/AppText";
+import { StatusDot } from "../../components/ui/StatusDot";
 import { T3Wordmark } from "../../components/T3Wordmark";
 import { BrowserAppIcon } from "./BrowserAppIcon";
 import { useAppActive, useReduceMotionEnabled } from "../../lib/appState";
@@ -1130,6 +1131,15 @@ const ThreadWorkLogRow = function ThreadWorkLogRow(
             <Text className="pr-1 font-t3-medium text-3xs text-adaptive-emerald-600-400">
               Copied
             </Text>
+          ) : null}
+          {row.live || isUsageLimit ? (
+            <View
+              className="h-4 w-4 items-center justify-center"
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+            >
+              <StatusDot tone={isUsageLimit ? "attention" : "working"} size={6} />
+            </View>
           ) : null}
           {failed && toolIcon !== undefined ? (
             <View

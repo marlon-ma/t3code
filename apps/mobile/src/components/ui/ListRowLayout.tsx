@@ -39,15 +39,33 @@ export function ListRowLayout({
       )}
     >
       {icon ? (
-        <View className="size-6 items-center justify-center">
-          <SymbolView
-            name={icon}
-            size={Platform.OS === "android" ? 24 : 22}
-            tintColorClassName={tone === "danger" ? "accent-danger-foreground" : "accent-icon"}
-            type="monochrome"
-            weight="regular"
-          />
-        </View>
+        Platform.OS === "android" ? (
+          <View className="size-6 items-center justify-center">
+            <SymbolView
+              name={icon}
+              size={24}
+              tintColorClassName={tone === "danger" ? "accent-danger-foreground" : "accent-icon"}
+              type="monochrome"
+              weight="regular"
+            />
+          </View>
+        ) : (
+          // A tinted tile gives every row the same weight whatever its symbol's shape.
+          <View
+            className={cn(
+              "size-8 items-center justify-center rounded-[10px] border-continuous",
+              tone === "danger" ? "bg-danger-foreground/10" : "bg-primary/10",
+            )}
+          >
+            <SymbolView
+              name={icon}
+              size={17}
+              tintColorClassName={tone === "danger" ? "accent-danger-foreground" : "accent-primary"}
+              type="monochrome"
+              weight="medium"
+            />
+          </View>
+        )
       ) : leading ? (
         <View className="size-6 items-center justify-center">{leading}</View>
       ) : null}

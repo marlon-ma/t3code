@@ -228,7 +228,7 @@ describe("home project scopes", () => {
     expect(findHomeProjectScope(scopes, null)).toBeNull();
   });
 
-  it("lists each project's open threads newest first and narrows them by search", () => {
+  it("lists projects by latest activity with open threads newest first, narrowed by search", () => {
     const environmentId = EnvironmentId.make("local");
     const projects = [
       makeProject({ environmentId, id: ProjectId.make("app"), title: "App" }),
@@ -255,7 +255,7 @@ describe("home project scopes", () => {
       projectGroupingMode: "separate",
     });
     const titles = (searchQuery: string) =>
-      buildHomeProjectSections({ scopes, threads, searchQuery }).map((section) => [
+      buildHomeProjectSections({ scopes, threads, searchQuery, order: "all" }).map((section) => [
         section.scope.title,
         section.threads.map((item) => item.title),
       ]);
@@ -267,6 +267,15 @@ describe("home project scopes", () => {
     // A project title match keeps all its threads; a thread match keeps only that thread.
     expect(titles("docs")).toEqual([["Docs", ["guide"]]]);
     expect(titles("OLD")).toEqual([["App", ["older"]]]);
+    // The project with the most recent thread activity leads, whatever order the projects came in.
+    expect(
+      buildHomeProjectSections({
+        scopes,
+        threads: [...threads, thread("fresh", "docs", "2026-06-05T00:00:00.000Z")],
+        searchQuery: "",
+        order: "activity",
+      }).map((section) => section.scope.title),
+    ).toEqual(["Docs", "App"]);
   });
 
   it("summarises each device by what needs the user first, then by running work", () => {

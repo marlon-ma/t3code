@@ -1,3 +1,4 @@
+import { WORKSPACE_FONT_FAMILY } from "./lib/workspaceFont";
 import { isDraftThreadRoute } from "./features/threads/thread-route-state";
 import { ComponentCatalogScreen } from "./features/development/ComponentCatalogScreen";
 import { PullRequestGuideStopScreen } from "./features/pull-requests/guide/PullRequestGuideScreen";
@@ -286,7 +287,7 @@ const SETTINGS_SCREENS = {
     linking: "settings/scheduled-tasks",
     options: {
       ...settingsPage("Scheduled tasks"),
-      headerTitleStyle: { fontSize: 16, fontWeight: "800" },
+      headerTitleStyle: { fontFamily: WORKSPACE_FONT_FAMILY, fontSize: 16 },
     },
   }),
   SettingsScheduledTaskNew: createNativeStackScreen({
@@ -453,7 +454,7 @@ function NotFoundScreen() {
       }}
       style={[{ flex: 1 }, screenBgStyle]}
     >
-      <Text className="text-3xl font-t3-bold text-foreground" selectable>
+      <Text className="text-3xl font-workspace text-foreground" selectable>
         Route not found
       </Text>
       <Pressable

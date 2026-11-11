@@ -82,8 +82,8 @@ export function GitBranchesSheet(_props: GitBranchesSheetProps) {
               : undefined
           }
         >
-          <View className="bg-card android:gap-3 android:rounded-[20px] android:p-4 ios:gap-2 ios:rounded-[18px] ios:border ios:border-border ios:px-4 ios:py-4">
-            <Text className="android:text-foreground android:text-base android:font-t3-medium ios:text-foreground-secondary ios:text-2xs ios:font-t3-bold ios:tracking-[1px] ios:uppercase">
+          <View className="android:gap-3 android:rounded-[20px] android:bg-card android:p-4 ios:gap-2 ios:rounded-3xl ios:border-continuous ios:bg-grouped-card ios:px-4 ios:py-4">
+            <Text className="android:text-foreground android:text-base android:font-t3-medium ios:font-workspace ios:text-sm ios:text-foreground-muted">
               New branch
             </Text>
             <TextInput
@@ -110,8 +110,8 @@ export function GitBranchesSheet(_props: GitBranchesSheetProps) {
             />
           </View>
 
-          <View className="bg-card android:gap-3 android:rounded-[20px] android:p-4 ios:gap-2 ios:rounded-[18px] ios:border ios:border-border ios:px-4 ios:py-4">
-            <Text className="android:text-foreground android:text-base android:font-t3-medium ios:text-foreground-secondary ios:text-2xs ios:font-t3-bold ios:tracking-[1px] ios:uppercase">
+          <View className="android:gap-3 android:rounded-[20px] android:bg-card android:p-4 ios:gap-2 ios:rounded-3xl ios:border-continuous ios:bg-grouped-card ios:px-4 ios:py-4">
+            <Text className="android:text-foreground android:text-base android:font-t3-medium ios:font-workspace ios:text-sm ios:text-foreground-muted">
               New worktree
             </Text>
             {Platform.OS === "android" ? (
@@ -160,7 +160,7 @@ export function GitBranchesSheet(_props: GitBranchesSheetProps) {
           </View>
 
           <View className="gap-2">
-            <Text className="text-foreground-secondary android:px-4 android:pb-1 android:pt-3 android:text-sm android:font-t3-medium ios:text-2xs ios:font-t3-bold ios:tracking-[1px] ios:uppercase">
+            <Text className="android:px-4 android:pb-1 android:pt-3 android:text-sm android:font-t3-medium android:text-foreground-secondary ios:px-2 ios:font-workspace ios:text-sm ios:text-foreground-muted">
               Existing branches
             </Text>
             {branchesLoading ? (
@@ -187,10 +187,8 @@ export function GitBranchesSheet(_props: GitBranchesSheetProps) {
                 <Pressable
                   key={branch.name}
                   className={cn(
-                    "gap-1 px-4 py-3 disabled:opacity-[0.45] android:rounded-[20px] android:active:bg-subtle ios:rounded-[18px] ios:border",
-                    branch.current
-                      ? "android:bg-secondary ios:border-subtle-strong"
-                      : "android:bg-card ios:border-border",
+                    "gap-1 px-4 py-3 disabled:opacity-[0.45] android:rounded-[20px] android:active:bg-subtle ios:rounded-[18px] ios:border-continuous",
+                    branch.current ? "android:bg-secondary" : "android:bg-card",
                   )}
                   accessibilityRole="button"
                   accessibilityState={{ selected: branch.current, disabled: busy || disabled }}
@@ -203,7 +201,13 @@ export function GitBranchesSheet(_props: GitBranchesSheetProps) {
                   }}
                 >
                   {Platform.OS !== "android" ? (
-                    <View className="absolute inset-0 rounded-[18px] bg-card" />
+                    // The checked-out branch is marked by a wash of the accent, not an outline.
+                    <View
+                      className={cn(
+                        "absolute inset-0 rounded-[18px] border-continuous",
+                        branch.current ? "bg-primary/12" : "bg-grouped-card",
+                      )}
+                    />
                   ) : null}
                   <Text className="text-foreground text-base android:font-t3-medium ios:font-t3-bold">
                     {branch.name}

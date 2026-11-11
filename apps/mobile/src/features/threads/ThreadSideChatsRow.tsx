@@ -3,6 +3,7 @@ import { Platform, Pressable, ScrollView, View } from "react-native";
 
 import { AppText as Text } from "../../components/ui/AppText";
 import { SymbolView } from "../../components/ui/AppSymbol";
+import { StatusDot } from "../../components/ui/StatusDot";
 import { cn } from "../../lib/cn";
 import { useSideChats } from "../../state/entities";
 import { useOpenLinkedThread } from "./useOpenLinkedThread";
@@ -50,14 +51,7 @@ export function ThreadSideChatsRow(props: {
                   openLinkedThread({ environmentId: props.environmentId, threadId: sideChat.id })
                 }
               >
-                {needs === null ? null : (
-                  <View
-                    className={cn(
-                      "h-1.5 w-1.5 shrink-0 rounded-full",
-                      needs === "approval" ? "bg-warning-foreground" : "bg-adaptive-indigo-600-300",
-                    )}
-                  />
-                )}
+                {needs === null ? null : <StatusDot tone="attention" size={6} />}
                 <Text className="shrink text-xs text-foreground" numberOfLines={1}>
                   {sideChat.title}
                 </Text>

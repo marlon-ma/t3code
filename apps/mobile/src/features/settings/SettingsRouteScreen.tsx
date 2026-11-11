@@ -1,3 +1,4 @@
+import { SpotIllustration } from "../../components/SpotIllustration";
 import {
   navigationCustomizationAvailable,
   overflowNavigationTabs,
@@ -26,6 +27,7 @@ import { hasCloudPublicConfig } from "../cloud/publicConfig";
 import { useAdaptiveWorkspaceLayout } from "../layout/adaptive-workspace-context";
 import { useSavedRemoteConnections } from "../../state/use-remote-environment-registry";
 import { SettingsRow } from "./components/SettingsRow";
+import { SettingsDeviceStrip } from "./SettingsDeviceStrip";
 import { SettingsSection, SettingsSidebarContext } from "./components/SettingsSection";
 import { SettingsScreen } from "./components/SettingsScreen";
 import type { SettingsPageTarget } from "./components/settings-page-targets";
@@ -161,7 +163,8 @@ function SettingsList(props: { readonly connections: readonly SettingsListRow[] 
   // UIKit's scroll-edge material takes the scroll view's own color; like the chat list, match
   // the sidebar's surface so the bar doesn't darken over content at rest.
   // Grouped cards only lift off the screen surface; the drawer is as dark as they are.
-  const listSurface = use(SettingsSidebarContext) ? "bg-drawer" : "bg-screen";
+  const sidebar = use(SettingsSidebarContext) !== null;
+  const listSurface = sidebar ? "bg-drawer" : "bg-screen";
   const insets = useSafeAreaInsets();
   // UIKit insets the scroll view by its column's safe area, which this context can report as 0.
   const bottomSafeArea = useNativeColumnLayoutMetrics()?.safeArea.bottom ?? insets.bottom;
@@ -191,6 +194,8 @@ function SettingsList(props: { readonly connections: readonly SettingsListRow[] 
               : Math.max(Math.max(insets.bottom, 18) + 18, workspace?.bottomClearance ?? 0),
         }}
       >
+        {/* Cards need the full-width list; a search is looking for a page, not a device. */}
+        {sidebar || query.trim() ? null : <SettingsDeviceStrip />}
         {sections.length ? (
           sections.map((section, index) => (
             <SettingsSection key={section.title ?? `untitled-${index}`} title={section.title}>
@@ -201,6 +206,7 @@ function SettingsList(props: { readonly connections: readonly SettingsListRow[] 
           ))
         ) : (
           <EmptyState
+            illustration={<SpotIllustration kind="search" />}
             variant="plain"
             title="No results"
             detail={`No settings match “${query.trim()}”.`}

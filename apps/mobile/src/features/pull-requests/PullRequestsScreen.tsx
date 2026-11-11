@@ -1,3 +1,4 @@
+import { SpotIllustration } from "../../components/SpotIllustration";
 import { usePaneRole } from "../../components/ui/Pane";
 import { Button } from "../../components/ui/Button";
 import {
@@ -256,7 +257,13 @@ export function PullRequestsScreen(
         labelColors,
       }),
   });
-  const renderPullRequest = ({ item }: { readonly item: EnvironmentPullRequestListEntry }) => (
+  const renderPullRequest = ({
+    item,
+    index,
+  }: {
+    readonly item: EnvironmentPullRequestListEntry;
+    readonly index: number;
+  }) => (
     <PullRequestListRow
       item={item}
       onSelect={selectPullRequest}
@@ -265,6 +272,8 @@ export function PullRequestsScreen(
       busy={busyKey === pullRequestKey(item)}
       selected={selectedKey === pullRequestKey(item)}
       sidebar={sidebar}
+      first={index === 0}
+      last={index === entries.length - 1}
     />
   );
   const list = (
@@ -272,7 +281,8 @@ export function PullRequestsScreen(
       <LegendList
         ref={listRef}
         data={entries}
-        extraData={`${selectedKey}:${busyKey}`}
+        // The count is here because a longer list moves the grouped card's rounded last row.
+        extraData={`${selectedKey}:${busyKey}:${entries.length}`}
         keyExtractor={pullRequestKey}
         itemsAreEqual={pullRequestListRowsAreEqual}
         estimatedItemSize={88}
@@ -367,6 +377,7 @@ export function PullRequestsScreen(
           ) : (
             <View className="px-8 py-12">
               <EmptyState
+                illustration={<SpotIllustration kind={query ? "search" : "pullRequest"} />}
                 title={
                   result.error
                     ? "Couldn't load pull requests"

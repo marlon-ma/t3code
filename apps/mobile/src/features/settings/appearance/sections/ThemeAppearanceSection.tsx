@@ -1,5 +1,5 @@
 import { memo, useId } from "react";
-import { Pressable, View } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import { ScopedTheme, ScopedVariables } from "uniwind";
 
@@ -16,6 +16,7 @@ import {
   type MobileThemeMode,
 } from "../../../../lib/mobileTheme";
 import { getMobileUniwindThemeName } from "../../../../lib/mobileThemeRuntime";
+import { MOBILE_SHAPE } from "../../../../lib/designTokens";
 import { cn } from "../../../../lib/cn";
 import { useAppearancePreferences } from "../AppearancePreferencesProvider";
 
@@ -27,6 +28,9 @@ const APPEARANCE_MODES: ReadonlyArray<{
   { id: "light", label: "Light" },
   { id: "dark", label: "Dark" },
 ];
+
+const GROUP_RADIUS =
+  Platform.OS === "android" ? MOBILE_SHAPE.group.android : MOBILE_SHAPE.group.ios;
 
 const previewPercentage = (value: number) => `${value * 100}%`;
 
@@ -129,19 +133,20 @@ function ThemeCard(props: {
       accessibilityRole="button"
       accessibilityState={{ disabled: props.disabled, selected }}
       className={cn(
-        "size-[66px] items-center justify-center rounded-full border-[3px] active:scale-[0.94]",
-        selected ? "border-primary" : "border-transparent",
+        "size-[66px] items-center justify-center rounded-full active:scale-[0.94]",
+        // The selected orb sits in a soft accent halo; its sun or moon badge names the appearance.
+        selected && "bg-primary/25",
       )}
       disabled={props.disabled}
       onPress={() => props.onSelect(appearance)}
     >
       <PreviewOrb appearance={appearance} compact themeId={props.themeId} />
       {selected ? (
-        <View className="absolute -bottom-0.5 -right-0.5 size-5 items-center justify-center rounded-full border border-border bg-card">
+        <View className="absolute -bottom-0.5 -right-0.5 size-5 items-center justify-center rounded-full bg-primary">
           <SymbolView
             name={appearance === "light" ? "sun.max" : "moon"}
             size={12}
-            tintColorClassName="accent-icon"
+            tintColorClassName="accent-primary-foreground"
             type="monochrome"
             weight="medium"
           />
@@ -151,7 +156,10 @@ function ThemeCard(props: {
   );
 
   return (
-    <View className="min-w-36 flex-1 basis-[47%] gap-3 rounded-[24px] border border-border bg-grouped-card px-2 py-4">
+    <View
+      className="min-w-36 flex-1 basis-[47%] gap-3 border-continuous bg-grouped-card px-2 py-4"
+      style={{ borderRadius: GROUP_RADIUS }}
+    >
       <Pressable
         accessibilityHint="Sets both light and dark appearances"
         accessibilityLabel={`${props.label} theme`}
@@ -160,7 +168,8 @@ function ThemeCard(props: {
           disabled: props.disabled,
           selected: props.lightSelected && props.darkSelected,
         }}
-        className="absolute inset-0 rounded-[24px] active:bg-subtle"
+        className="absolute inset-0 border-continuous active:bg-subtle"
+        style={{ borderRadius: GROUP_RADIUS }}
         disabled={props.disabled}
         onPress={props.onSelectBoth}
       />
@@ -258,11 +267,10 @@ function ModeCard(props: {
       accessibilityRole="radio"
       accessibilityState={{ checked: props.selected, disabled: props.disabled }}
       className={cn(
-        "min-w-0 flex-1 gap-2 rounded-[24px] p-2 active:scale-[0.97]",
-        props.selected
-          ? "border-2 border-primary bg-subtle"
-          : "border border-border bg-grouped-card",
+        "min-w-0 flex-1 gap-2 border-continuous p-2 active:scale-[0.97]",
+        props.selected ? "bg-primary/12" : "bg-grouped-card",
       )}
+      style={{ borderRadius: GROUP_RADIUS }}
       disabled={props.disabled}
       onPress={props.onPress}
     >
@@ -281,7 +289,11 @@ function ModeCard(props: {
 }
 
 function SectionLabel({ children }: { readonly children: string }) {
-  return <Text className="px-2 text-sm font-t3-medium text-foreground-muted">{children}</Text>;
+  return (
+    <Text textRole="footnote" className="px-2 font-workspace text-foreground-muted android:px-4">
+      {children}
+    </Text>
+  );
 }
 
 export function ThemeAppearanceSection() {

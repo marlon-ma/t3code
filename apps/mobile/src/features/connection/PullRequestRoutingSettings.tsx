@@ -12,6 +12,7 @@ import { Pressable, View } from "react-native";
 
 import { AppText as Text } from "../../components/ui/AppText";
 import { SymbolView } from "../../components/ui/AppSymbol";
+import { cn } from "../../lib/cn";
 import { environmentCatalog } from "../../connection/catalog";
 import { useAtomCommand } from "../../state/use-atom-command";
 import { SettingsSection } from "../settings/components/SettingsSection";
@@ -46,24 +47,22 @@ export function PullRequestRoutingSettings() {
   return (
     <View className="mt-5 gap-3">
       <SettingsSection title="Pull request routing">
-        {[...catalog.entries.values()].map((entry) => {
+        {[...catalog.entries.values()].map((entry, index) => {
           const environmentId = entry.target.environmentId;
           const selected = pullRequestRoutingPermissionFor(entry, permissions);
           const disabled =
             !catalog.isReady || saving || pullRequestRoutingConnectionKey(entry) === null;
           return (
-            <View key={environmentId}>
+            <View key={environmentId} className={cn(index > 0 && "border-t border-border-subtle")}>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`${entry.target.label} pull request routing`}
                 accessibilityState={{ expanded: expanded === environmentId }}
-                className="flex-row items-center gap-3 p-4"
+                className="min-h-14 flex-row items-center gap-3 px-4 py-3 active:opacity-70"
                 onPress={() => setExpanded(expanded === environmentId ? null : environmentId)}
               >
                 <View className="min-w-0 flex-1 gap-0.5">
-                  <Text className="text-base font-t3-bold text-foreground">
-                    {entry.target.label}
-                  </Text>
+                  <Text className="text-base text-foreground">{entry.target.label}</Text>
                   <Text className="text-xs text-foreground-muted" numberOfLines={1}>
                     {connectionCatalogDisplayUrl(entry) ?? "T3 Connect"}
                   </Text>
@@ -73,8 +72,10 @@ export function PullRequestRoutingSettings() {
                 </Text>
                 <SymbolView
                   name={expanded === environmentId ? "chevron.up" : "chevron.down"}
-                  size={12}
-                  tintColorClassName="accent-icon-muted"
+                  size={14}
+                  tintColorClassName="accent-chevron"
+                  type="monochrome"
+                  weight="semibold"
                 />
               </Pressable>
               {expanded === environmentId

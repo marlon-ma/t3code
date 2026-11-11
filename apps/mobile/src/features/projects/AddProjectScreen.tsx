@@ -1,3 +1,4 @@
+import { DeviceIllustration } from "../../components/DeviceIllustration";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSelectWorkspaceDetail } from "../layout/workspace/useSelectWorkspaceDetail";
 import * as Dialog from "../../components/ui/Dialog";
@@ -85,6 +86,7 @@ import { sourceControlEnvironment } from "../../state/sourceControl";
 import { AppText as Text, AppTextInput as TextInput } from "../../components/ui/AppText";
 import { EnvironmentMachineSymbol } from "../../components/EnvironmentMachineSymbol";
 import { ErrorBanner } from "../../components/ui/ErrorBanner";
+import { ListSection } from "../../components/ui/ListSection";
 import { SourceControlIcon } from "./SourceControlIcon";
 import { sourceControlClients } from "@t3tools/client-runtime/source-control-clients";
 import { ThemedSwitch } from "../../components/ui/ThemedSwitch";
@@ -149,18 +151,9 @@ function sourceFromParam(value: string | string[] | undefined): AddProjectRemote
   return parseAddProjectRemoteSource(stringParam(value));
 }
 
+/** Android section label; iOS sections title themselves through ListSection. */
 function SectionTitle(props: { readonly children: string }) {
-  return (
-    <Text
-      className={
-        Platform.OS === "android"
-          ? "px-4 text-sm font-t3-medium text-primary-text"
-          : "px-1 text-2xs font-t3-bold tracking-[0.7px] uppercase text-foreground-muted"
-      }
-    >
-      {props.children}
-    </Text>
-  );
+  return <Text className="px-4 text-sm font-t3-medium text-primary-text">{props.children}</Text>;
 }
 
 function AddProjectShell(props: { readonly children: ReactNode; readonly title: string }) {
@@ -185,18 +178,21 @@ function AddProjectShell(props: { readonly children: ReactNode; readonly title: 
   );
 }
 
-function ListSection(props: { readonly children: ReactNode }) {
-  return (
-    <View
-      className={
-        Platform.OS === "android"
-          ? "overflow-hidden rounded-[28px] bg-grouped-card"
-          : "overflow-hidden rounded-[24px] bg-grouped-card"
-      }
-    >
-      {props.children}
-    </View>
-  );
+// iOS rows sit on a primary-tinted tile; Android keeps its plain leading icon.
+const ROW_ICON_TINT = Platform.OS === "android" ? "accent-icon" : "accent-primary";
+const ROW_MUTED_ICON_TINT = Platform.OS === "android" ? "accent-icon-muted" : "accent-primary";
+const ROW_CHECKMARK_TINT = Platform.OS === "android" ? "accent-icon" : "accent-primary-text";
+
+function Section(props: { readonly children: ReactNode; readonly heading?: string }) {
+  if (Platform.OS === "android") {
+    return (
+      <>
+        {props.heading ? <SectionTitle>{props.heading}</SectionTitle> : null}
+        <View className="overflow-hidden rounded-[28px] bg-grouped-card">{props.children}</View>
+      </>
+    );
+  }
+  return <ListSection title={props.heading}>{props.children}</ListSection>;
 }
 
 function ListRow(props: {
@@ -229,40 +225,37 @@ function ListRow(props: {
       disabled={props.disabled}
       onPress={props.onPress}
       className={cn(
-        "bg-grouped-card px-3.5 py-2.5 active:opacity-70",
+        "min-h-14 flex-row items-center gap-3 px-4 py-3 active:opacity-70",
+        // The chosen option is marked by a wash of the accent behind the whole row.
+        props.selected ? "bg-primary/12" : "bg-grouped-card",
         !props.isFirst && "border-t border-border-subtle",
         props.disabled && "opacity-[0.45]",
       )}
     >
-      <View className="flex-row items-center gap-3">
-        <View
-          className={
-            props.selected
-              ? "h-7 w-7 items-center justify-center rounded-full bg-primary"
-              : "h-7 w-7 items-center justify-center"
-          }
-        >
-          {props.icon}
-        </View>
-        <View className="flex-1 gap-0.5">
-          <Text className="text-base leading-snug font-t3-bold">{props.title}</Text>
-          {props.subtitle ? (
-            <Text className="text-sm leading-snug text-foreground-muted" numberOfLines={2}>
-              {props.subtitle}
-            </Text>
-          ) : null}
-        </View>
-        {"right" in props ? (
-          props.right
-        ) : !props.disabled ? (
-          <SymbolView
-            name="chevron.right"
-            size={13}
-            tintColorClassName="accent-chevron"
-            type="monochrome"
-          />
+      <View className="size-8 items-center justify-center rounded-[10px] border-continuous bg-primary/10">
+        {props.icon}
+      </View>
+      <View className="min-w-0 flex-1 gap-1">
+        <Text textRole="body" className="text-foreground">
+          {props.title}
+        </Text>
+        {props.subtitle ? (
+          <Text textRole="footnote" className="text-foreground-muted" numberOfLines={2}>
+            {props.subtitle}
+          </Text>
         ) : null}
       </View>
+      {"right" in props ? (
+        props.right
+      ) : !props.disabled ? (
+        <SymbolView
+          name="chevron.right"
+          size={16}
+          tintColorClassName="accent-chevron"
+          type="monochrome"
+          weight="semibold"
+        />
+      ) : null}
     </Pressable>
   );
 }
@@ -456,8 +449,9 @@ function EmptyEnvironmentState() {
   const navigation = useNavigation();
 
   return (
-    <View className="items-center gap-3 rounded-2xl bg-grouped-card px-5 py-8">
-      <Text className="text-center text-lg font-t3-bold">Environment unavailable</Text>
+    <View className="items-center gap-3 rounded-[24px] border-continuous bg-grouped-card px-5 py-8">
+      <DeviceIllustration kind="laptop" status="offline" width={104} />
+      <Text className="text-center text-lg font-workspace">Environment unavailable</Text>
       <Text className="text-center text-sm leading-normal text-foreground-muted">
         Start or reconnect an environment before adding a project.
       </Text>
@@ -491,14 +485,14 @@ function SourceControlRow(props: {
       <SymbolView
         name="link"
         size={Platform.OS === "android" ? 24 : 17}
-        tintColorClassName="accent-icon"
+        tintColorClassName={ROW_ICON_TINT}
         type="monochrome"
       />
     ) : (
       <SourceControlIcon
         icon={sourceControlClients.get(props.source).icon}
         size={Platform.OS === "android" ? 24 : 18}
-        colorClassName="accent-icon"
+        colorClassName={ROW_ICON_TINT}
       />
     );
 
@@ -556,8 +550,7 @@ export function AddProjectSourceScreen(props: { readonly environmentId?: string 
 
       {environmentOptions.length > 1 || (selectedEnvironment !== null && !isConnected) ? (
         <>
-          <SectionTitle>Environments</SectionTitle>
-          <ListSection>
+          <Section heading="Environments">
             {environmentOptions.map((environment, index) => (
               <ListRow
                 key={environment.environmentId}
@@ -575,7 +568,7 @@ export function AddProjectSourceScreen(props: { readonly environmentId?: string 
                   <EnvironmentMachineSymbol
                     kind={environment.machine}
                     size={Platform.OS === "android" ? 24 : 17}
-                    tintColorClassName="accent-icon"
+                    tintColorClassName={ROW_ICON_TINT}
                   />
                 }
                 selected={environment.environmentId === selectedEnvironment?.environmentId}
@@ -586,7 +579,7 @@ export function AddProjectSourceScreen(props: { readonly environmentId?: string 
                     <SymbolView
                       name="checkmark"
                       size={Platform.OS === "android" ? 20 : 14}
-                      tintColorClassName="accent-icon"
+                      tintColorClassName={ROW_CHECKMARK_TINT}
                       type="monochrome"
                     />
                   ) : null
@@ -594,13 +587,13 @@ export function AddProjectSourceScreen(props: { readonly environmentId?: string 
                 onPress={() => setSelectedEnvironmentId(environment.environmentId)}
               />
             ))}
-          </ListSection>
+          </Section>
         </>
       ) : null}
 
       {selectedEnvironment ? (
         <>
-          <ListSection>
+          <Section heading={Platform.OS === "android" ? undefined : "Start from"}>
             {selectedEnvironment.newProjectsRoot !== null ? (
               <ListRow
                 title="New project"
@@ -610,7 +603,7 @@ export function AddProjectSourceScreen(props: { readonly environmentId?: string 
                   <SymbolView
                     name="plus"
                     size={Platform.OS === "android" ? 24 : 17}
-                    tintColorClassName="accent-icon"
+                    tintColorClassName={ROW_ICON_TINT}
                     type="monochrome"
                   />
                 }
@@ -635,7 +628,7 @@ export function AddProjectSourceScreen(props: { readonly environmentId?: string 
                 <SymbolView
                   name="folder.badge.plus"
                   size={Platform.OS === "android" ? 24 : 17}
-                  tintColorClassName="accent-icon"
+                  tintColorClassName={ROW_ICON_TINT}
                   type="monochrome"
                 />
               }
@@ -667,7 +660,7 @@ export function AddProjectSourceScreen(props: { readonly environmentId?: string 
                 />
               ),
             )}
-          </ListSection>
+          </Section>
           {discoveryState.isPending ? (
             <AppActivityIndicator colorClassName="accent-icon-muted" />
           ) : null}
@@ -960,7 +953,7 @@ function FolderBrowser(props: {
 
   return (
     <>
-      <SectionTitle>Browse folders</SectionTitle>
+      {Platform.OS === "android" ? <SectionTitle>Browse folders</SectionTitle> : null}
       {!canReadFiles && !fileAccess.isPending ? (
         <ErrorBanner message={fileAccess.error ?? "This connection cannot browse host folders."} />
       ) : null}
@@ -974,7 +967,7 @@ function FolderBrowser(props: {
       ) : (
         <ErrorBanner message={browseState.error} />
       )}
-      <ListSection>
+      <Section heading={Platform.OS === "android" ? undefined : "Browse folders"}>
         {fileAccess.isPending || (browseState.isPending && browseState.data === null) ? (
           <View className="items-center py-5">
             <AppActivityIndicator colorClassName="accent-icon-muted" />
@@ -987,7 +980,7 @@ function FolderBrowser(props: {
               <SymbolView
                 name="arrow.turn.left.up"
                 size={Platform.OS === "android" ? 24 : 17}
-                tintColorClassName="accent-icon-muted"
+                tintColorClassName={ROW_MUTED_ICON_TINT}
                 type="monochrome"
               />
             }
@@ -1010,7 +1003,7 @@ function FolderBrowser(props: {
               <SymbolView
                 name="folder"
                 size={Platform.OS === "android" ? 24 : 17}
-                tintColorClassName="accent-icon-muted"
+                tintColorClassName={ROW_MUTED_ICON_TINT}
                 type="monochrome"
               />
             }
@@ -1024,7 +1017,7 @@ function FolderBrowser(props: {
             }}
           />
         ))}
-      </ListSection>
+      </Section>
     </>
   );
 }
@@ -1071,7 +1064,7 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
   const showMachines =
     environmentOptions.length > 1 || (environment === null && environmentOptions.length > 0);
   const machineRows = showMachines ? (
-    <ListSection>
+    <Section heading={Platform.OS === "android" ? undefined : "Environment"}>
       {environmentOptions.map((option, index) => {
         const selected = option.environmentId === environment?.environmentId;
         return (
@@ -1082,7 +1075,7 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
               <EnvironmentMachineSymbol
                 kind={option.machine}
                 size={Platform.OS === "android" ? 24 : 17}
-                tintColorClassName="accent-icon"
+                tintColorClassName={ROW_ICON_TINT}
               />
             }
             selected={selected}
@@ -1093,7 +1086,7 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
                 <SymbolView
                   name="checkmark"
                   size={Platform.OS === "android" ? 20 : 14}
-                  tintColorClassName="accent-icon"
+                  tintColorClassName={ROW_CHECKMARK_TINT}
                   type="monochrome"
                 />
               ) : null
@@ -1102,7 +1095,7 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
           />
         );
       })}
-    </ListSection>
+    </Section>
   ) : null;
 
   // State lags a render behind, so a double tap could start a second create.
@@ -1201,7 +1194,7 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
           ) : null}
           {machineRows}
           {publishTarget !== null ? (
-            <ListSection>
+            <Section>
               <ListRow
                 title={`Create private repository on ${publishTarget.definition.label}`}
                 subtitle={
@@ -1213,7 +1206,7 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
                   <SourceControlIcon
                     icon={publishTarget.definition.icon}
                     size={Platform.OS === "android" ? 24 : 18}
-                    colorClassName="accent-icon"
+                    colorClassName={ROW_ICON_TINT}
                   />
                 }
                 isFirst
@@ -1237,7 +1230,7 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
                           <SourceControlIcon
                             icon={target.definition.icon}
                             size={Platform.OS === "android" ? 24 : 17}
-                            colorClassName="accent-icon"
+                            colorClassName={ROW_ICON_TINT}
                           />
                         }
                         selected={selected}
@@ -1247,7 +1240,7 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
                             <SymbolView
                               name="checkmark"
                               size={Platform.OS === "android" ? 20 : 14}
-                              tintColorClassName="accent-icon"
+                              tintColorClassName={ROW_CHECKMARK_TINT}
                               type="monochrome"
                             />
                           ) : null
@@ -1257,7 +1250,7 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
                     );
                   })
                 : null}
-            </ListSection>
+            </Section>
           ) : null}
           <PrimaryActionButton
             label="Create project"
@@ -1265,7 +1258,7 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
             onPress={() => void submit()}
             loading={isSubmitting}
           />
-          <ListSection>
+          <Section>
             <ListRow
               title="Add existing project"
               subtitle="Open a folder or clone a repository"
@@ -1273,7 +1266,7 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
                 <SymbolView
                   name="folder.badge.plus"
                   size={Platform.OS === "android" ? 24 : 17}
-                  tintColorClassName="accent-icon"
+                  tintColorClassName={ROW_ICON_TINT}
                   type="monochrome"
                 />
               }
@@ -1284,7 +1277,7 @@ export function AddProjectNewScreen(props: { readonly environmentId?: string | s
                   : navigation.dispatch(StackActions.replace("AddProject"))
               }
             />
-          </ListSection>
+          </Section>
         </>
       ) : environmentOptions.length > 0 ? (
         machineRows
@@ -1475,7 +1468,7 @@ export function AddProjectDestinationScreen(props: {
       {error ? <ErrorBanner message={error} /> : null}
       {repositoryTitle ? (
         <View className="rounded-[24px] bg-grouped-card px-4 py-3">
-          <Text className="text-base font-t3-bold">{repositoryTitle}</Text>
+          <Text className="text-base font-workspace">{repositoryTitle}</Text>
           <Text className="mt-0.5 text-xs text-foreground-muted" numberOfLines={2}>
             {remoteUrl}
           </Text>

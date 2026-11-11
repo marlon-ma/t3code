@@ -1,7 +1,12 @@
+import { DeviceIllustration } from "../../components/DeviceIllustration";
+import { WorkspaceHeading } from "../../components/ui/WorkspaceHeading";
 import { isDraftThreadRoute } from "./thread-route-state";
 import * as Dialog from "../../components/ui/Dialog";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { NavigationRow } from "../../components/ui/NavigationRow";
+import { ListRowLayout } from "../../components/ui/ListRowLayout";
+import { ListSection } from "../../components/ui/ListSection";
+import { RowPressable } from "../../components/ui/RowPressable";
 import { AppBar } from "../../components/ui/AppBar";
 import {
   StackActions,
@@ -18,7 +23,7 @@ import {
 } from "@t3tools/client-runtime/state/runtime";
 import type { EnvironmentProject } from "@t3tools/client-runtime/state/shell";
 import { useEffect, useRef, useState } from "react";
-import { Platform, Pressable, View } from "react-native";
+import { Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { cn } from "../../lib/cn";
 import { ScreenContent } from "../../components/ui/ScreenContent";
@@ -348,39 +353,30 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                 />
               </View>
             ) : (
-              <View collapsable={false} className="overflow-hidden rounded-[24px] bg-grouped-card">
-                <Pressable
+              <ListSection>
+                <RowPressable
                   accessibilityRole="button"
                   accessibilityLabel="No project"
                   disabled={!canStartScratch}
                   onPress={() => void startScratch()}
-                  className={cn(
-                    "flex-row items-center gap-3 bg-grouped-card px-4 py-3.5",
-                    !canStartScratch && "opacity-45",
-                  )}
                 >
-                  <View className="h-7 w-7 items-center justify-center">
-                    <SymbolView
-                      name="text.bubble"
-                      size={18}
-                      tintColorClassName="accent-icon-muted"
-                      type="monochrome"
-                    />
-                  </View>
-                  <View className="min-w-0 flex-1">
-                    <Text className="text-base font-t3-bold leading-snug">No project</Text>
-                    <Text className="text-xs leading-snug text-foreground-muted" numberOfLines={1}>
-                      Start a task without a project
-                    </Text>
-                  </View>
-                  <SymbolView
-                    name="chevron.right"
-                    size={14}
-                    tintColorClassName="accent-chevron"
-                    type="monochrome"
+                  <ListRowLayout
+                    icon="text.bubble"
+                    label="No project"
+                    description="Start a task without a project"
+                    disabled={!canStartScratch}
+                    accessory={
+                      <SymbolView
+                        name="chevron.right"
+                        size={16}
+                        tintColorClassName="accent-chevron"
+                        type="monochrome"
+                        weight="semibold"
+                      />
+                    }
                   />
-                </Pressable>
-              </View>
+                </RowPressable>
+              </ListSection>
             )
           ) : null}
           {listScopes.length === 0 ? (
@@ -388,15 +384,21 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
               collapsable={false}
               className={cn(
                 "items-center gap-3 px-6 py-8",
-                Platform.OS !== "android" && "rounded-[24px] bg-grouped-card",
+                Platform.OS !== "android" && "rounded-[24px] border-continuous bg-grouped-card",
               )}
             >
               {projectEmptyState.loading ? (
                 <AppActivityIndicator colorClassName="accent-icon-muted" />
-              ) : null}
-              <Text className="text-center text-lg font-t3-bold text-foreground">
+              ) : (
+                <DeviceIllustration
+                  kind="laptop"
+                  status={catalogState.hasReadyEnvironment ? "idle" : "offline"}
+                  width={104}
+                />
+              )}
+              <WorkspaceHeading className="text-center text-lg text-foreground">
                 {projectEmptyState.title}
-              </Text>
+              </WorkspaceHeading>
               <Text className="text-center text-sm leading-normal text-foreground-muted">
                 {projectEmptyState.detail}
               </Text>
@@ -456,22 +458,52 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
             </View>
           ) : visibleScopes.length === 0 ? (
             <View className="items-center gap-2 px-6 py-8">
-              <Text className="text-center text-lg font-t3-bold text-foreground">
+              <WorkspaceHeading className="text-center text-lg text-foreground">
                 No matching projects
-              </Text>
+              </WorkspaceHeading>
               <Text className="text-center text-sm leading-normal text-foreground-muted">
                 Try a different project name or workspace path.
               </Text>
             </View>
+          ) : Platform.OS === "android" ? (
+            <View collapsable={false} className="overflow-hidden rounded-[28px] bg-grouped-card">
+              {visibleScopes.map((scope) => {
+                const hasMultipleProjects = scope.projects.length > 1;
+                const selectionTarget = getProjectScopeSelectionTarget(
+                  scope,
+                  selectedEnvironmentId,
+                  connectedEnvironmentIds,
+                );
+                return (
+                  <NavigationRow
+                    className="bg-grouped-card"
+                    key={scope.key}
+                    title={scope.title}
+                    subtitle={
+                      hasMultipleProjects
+                        ? `${scope.projects.length} workspaces`
+                        : selectionTarget.workspaceRoot
+                    }
+                    subtitleNumberOfLines={1}
+                    subtitleEllipsizeMode="middle"
+                    disabled={reservedDestinationProject !== null}
+                    onPress={() => void selectProject(selectionTarget)}
+                    leading={
+                      <ProjectFavicon
+                        environmentId={scope.representative.environmentId}
+                        faviconPath={scope.representative.faviconPath}
+                        projectIcon={scope.representative.projectIcon}
+                        size={24}
+                        projectTitle={scope.title}
+                        workspaceRoot={scope.representative.workspaceRoot}
+                      />
+                    }
+                  />
+                );
+              })}
+            </View>
           ) : (
-            <View
-              collapsable={false}
-              className={
-                Platform.OS === "android"
-                  ? "overflow-hidden rounded-[28px] bg-grouped-card"
-                  : "overflow-hidden rounded-[24px] bg-grouped-card"
-              }
-            >
+            <ListSection title="Projects">
               {visibleScopes.map((scope, scopeIndex) => {
                 const hasMultipleProjects = scope.projects.length > 1;
                 const selectionTarget = getProjectScopeSelectionTarget(
@@ -479,81 +511,57 @@ export function NewTaskRouteScreen({ route }: StaticScreenProps<NewTaskRoutePara
                   selectedEnvironmentId,
                   connectedEnvironmentIds,
                 );
-                if (Platform.OS === "android") {
-                  return (
-                    <NavigationRow
-                      className="bg-grouped-card"
-                      key={scope.key}
-                      title={scope.title}
-                      subtitle={
-                        hasMultipleProjects
-                          ? `${scope.projects.length} workspaces`
-                          : selectionTarget.workspaceRoot
-                      }
-                      subtitleNumberOfLines={1}
-                      subtitleEllipsizeMode="middle"
-                      disabled={reservedDestinationProject !== null}
-                      onPress={() => void selectProject(selectionTarget)}
-                      leading={
-                        <ProjectFavicon
-                          environmentId={scope.representative.environmentId}
-                          faviconPath={scope.representative.faviconPath}
-                          projectIcon={scope.representative.projectIcon}
-                          size={24}
-                          projectTitle={scope.title}
-                          workspaceRoot={scope.representative.workspaceRoot}
-                        />
-                      }
-                    />
-                  );
-                }
                 return (
                   <View
                     key={scope.key}
                     className={cn(scopeIndex > 0 && "border-t border-border-subtle")}
                   >
-                    <Pressable
+                    <RowPressable
                       accessibilityRole="button"
                       accessibilityLabel={scope.title}
                       disabled={reservedDestinationProject !== null}
                       onPress={() => void selectProject(selectionTarget)}
-                      className="flex-row items-center gap-3 bg-grouped-card px-4 py-3.5"
+                      className="min-h-14 flex-row items-center gap-3 px-4 py-3"
                     >
-                      <View className="h-7 w-7 items-center justify-center">
-                        <ProjectFavicon
-                          environmentId={scope.representative.environmentId}
-                          faviconPath={scope.representative.faviconPath}
-                          projectIcon={scope.representative.projectIcon}
-                          size={20}
-                          projectTitle={scope.title}
-                          workspaceRoot={scope.representative.workspaceRoot}
-                        />
-                      </View>
-                      <View className="min-w-0 flex-1">
-                        <Text className={cn("text-base leading-snug", "font-t3-bold")}>
+                      <ProjectFavicon
+                        environmentId={scope.representative.environmentId}
+                        faviconPath={scope.representative.faviconPath}
+                        projectIcon={scope.representative.projectIcon}
+                        size={28}
+                        projectTitle={scope.title}
+                        workspaceRoot={scope.representative.workspaceRoot}
+                      />
+                      <View className="min-w-0 flex-1 gap-0.5">
+                        <Text className="text-base" numberOfLines={1}>
                           {scope.title}
                         </Text>
-                        <Text
-                          className="text-xs leading-snug text-foreground-muted"
-                          ellipsizeMode="middle"
-                          numberOfLines={1}
-                        >
-                          {hasMultipleProjects
-                            ? `${scope.projects.length} workspaces`
-                            : selectionTarget.workspaceRoot}
-                        </Text>
+                        {hasMultipleProjects ? null : (
+                          <Text
+                            className="text-xs text-foreground-muted"
+                            ellipsizeMode="middle"
+                            numberOfLines={1}
+                          >
+                            {selectionTarget.workspaceRoot}
+                          </Text>
+                        )}
                       </View>
+                      {hasMultipleProjects ? (
+                        <Text className="shrink-0 text-sm text-foreground-muted" numberOfLines={1}>
+                          {`${scope.projects.length} workspaces`}
+                        </Text>
+                      ) : null}
                       <SymbolView
                         name="chevron.right"
-                        size={14}
+                        size={16}
                         tintColorClassName="accent-chevron"
                         type="monochrome"
+                        weight="semibold"
                       />
-                    </Pressable>
+                    </RowPressable>
                   </View>
                 );
               })}
-            </View>
+            </ListSection>
           )}
         </ScrollView>
       </ScreenContent>

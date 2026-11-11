@@ -56,6 +56,10 @@ import { Menu } from "../../components/ui/Menu";
 import type { ComposerEditorSelection } from "../../components/ComposerEditor";
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
 import { SegmentedControl } from "../../components/ui/SegmentedControl";
+import { StatusDot } from "../../components/ui/StatusDot";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { DeviceIllustration } from "../../components/DeviceIllustration";
+import { SpotIllustration } from "../../components/SpotIllustration";
 import { ThemedSwitch } from "../../components/ui/ThemedSwitch";
 import { webhookAddress } from "@t3tools/client-runtime/webhook-address";
 import { tryCopyTextWithHaptic } from "../../lib/copyTextWithHaptic";
@@ -464,11 +468,22 @@ export function SettingsScheduledTasksRouteScreen() {
             />
           ))
         ) : (
-          <Text className="px-2 text-base text-foreground-muted">
-            {availableTargets.length === 0
-              ? "Connect an environment to view and create scheduled tasks."
-              : "No environments match these filters. Change the filter above."}
-          </Text>
+          <EmptyState
+            variant="plain"
+            illustration={
+              availableTargets.length === 0 ? (
+                <DeviceIllustration kind="laptop" status="offline" width={104} />
+              ) : (
+                <SpotIllustration kind="search" />
+              )
+            }
+            title={availableTargets.length === 0 ? "No environment connected" : "No matches"}
+            detail={
+              availableTargets.length === 0
+                ? "Connect an environment to view and create scheduled tasks."
+                : "No environments match these filters. Change the filter above."
+            }
+          />
         )}
       </ScrollView>
     </SettingsScreen>
@@ -1497,9 +1512,20 @@ function EnvironmentTasks({
               }}
               className="min-w-0 flex-1 gap-1 active:opacity-70"
             >
-              <Text textRole="body" className="text-foreground" numberOfLines={1}>
-                {task.title}
-              </Text>
+              <View className="flex-row items-center gap-2">
+                <StatusDot
+                  tone={
+                    task.lastRunError || task.blockedByPolicy
+                      ? "attention"
+                      : task.enabled
+                        ? "idle"
+                        : "offline"
+                  }
+                />
+                <Text textRole="body" className="shrink text-foreground" numberOfLines={1}>
+                  {task.title}
+                </Text>
+              </View>
               <Text className="text-sm text-foreground-muted" numberOfLines={2}>
                 {describeSchedule(task, tasks.data?.timeZone)}
                 {!task.enabled

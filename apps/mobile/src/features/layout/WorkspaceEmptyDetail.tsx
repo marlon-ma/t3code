@@ -1,3 +1,4 @@
+import { SpotIllustration } from "../../components/SpotIllustration";
 import { SymbolView } from "../../components/ui/AppSymbol";
 import { Platform, Pressable, View } from "react-native";
 
@@ -5,6 +6,8 @@ import { AppText as Text } from "../../components/ui/AppText";
 import { NewThreadButton } from "../../components/NewThreadButton";
 import { FloatingActionButton } from "../../components/ui/FloatingActionButton";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { DeviceIllustration } from "../../components/DeviceIllustration";
+import { WorkspaceHeading } from "../../components/ui/WorkspaceHeading";
 import { ScreenContent } from "../../components/ui/ScreenContent";
 import type { WorkspaceTab } from "./workspace/workspace-tabs-state";
 
@@ -28,6 +31,7 @@ export function WorkspaceEmptyDetail(props: {
         {props.onAddConnection ? (
           <View className="w-full max-w-[430px]">
             <EmptyState
+              illustration={<DeviceIllustration kind="laptop" status="offline" width={120} />}
               title="No environments connected"
               detail="Add an environment to load projects and start coding sessions."
               variant="plain"
@@ -44,19 +48,23 @@ export function WorkspaceEmptyDetail(props: {
           </View>
         ) : (
           <View className="max-w-[360px] items-center gap-3">
-            <SymbolView
-              name="sidebar.left"
-              size={34}
-              tintColorClassName="accent-icon-subtle"
-              type="hierarchical"
-            />
-            <Text className="text-center text-xl font-t3-bold">
+            {settings ? (
+              <SymbolView
+                name="sidebar.left"
+                size={34}
+                tintColorClassName="accent-icon-subtle"
+                type="hierarchical"
+              />
+            ) : (
+              <SpotIllustration kind={pullRequests ? "pullRequest" : "threads"} />
+            )}
+            <WorkspaceHeading className="text-center text-xl">
               {settings
                 ? "Select a setting"
                 : pullRequests
                   ? "Select a pull request"
                   : "Select a thread"}
-            </Text>
+            </WorkspaceHeading>
             <Text className="text-center text-base text-foreground-muted">
               {settings
                 ? "Choose a page from the sidebar."

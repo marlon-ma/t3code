@@ -9,6 +9,7 @@ import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { AppText as Text } from "../../components/ui/AppText";
 import { Button } from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { SpotIllustration } from "../../components/SpotIllustration";
 import { SelectionRow } from "../../components/ui/SelectionRow";
 import { composerPullRequests } from "../../state/pull-requests";
 import { useEnvironmentQuery } from "../../state/query";
@@ -123,6 +124,7 @@ export function PullRequestLabelsScreen({ route }: StaticScreenProps<PullRequest
             ) : (
               <View>
                 <EmptyState
+                  illustration={<SpotIllustration kind={needle ? "search" : "pullRequest"} />}
                   title={
                     result.error
                       ? "Couldn't load labels"

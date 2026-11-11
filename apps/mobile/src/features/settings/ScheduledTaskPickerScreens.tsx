@@ -5,7 +5,9 @@ import { useMemo, useState } from "react";
 import { FlatList, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { SpotIllustration } from "../../components/SpotIllustration";
 import { AppText as Text } from "../../components/ui/AppText";
+import { EmptyState } from "../../components/ui/EmptyState";
 import { SelectionRow } from "../../components/ui/SelectionRow";
 import { useSearchToolbarInset } from "../../components/ui/useBarInset";
 import { buildModelOptions, groupByProvider } from "../../lib/modelOptions";
@@ -254,7 +256,12 @@ export function ScheduledTaskThreadPickerRouteScreen() {
             : Math.max(insets.bottom, 16) + 16,
         }}
         ListEmptyComponent={
-          <Text className="p-5 text-center text-sm text-foreground-muted">No matching threads</Text>
+          <EmptyState
+            variant="plain"
+            illustration={<SpotIllustration kind="search" />}
+            title="No matching threads"
+            detail="Try another title."
+          />
         }
         renderItem={({ item, index }) => (
           <SelectionRow

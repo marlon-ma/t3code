@@ -5,11 +5,13 @@ import type { ProjectEntry } from "@t3tools/contracts";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { SymbolView } from "../../components/ui/AppSymbol";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, RefreshControl, View } from "react-native";
+import { Platform, Pressable, RefreshControl, View } from "react-native";
 
 import { AppText as Text } from "../../components/ui/AppText";
 import { PierreEntryIcon } from "../../components/PierreEntryIcon";
+import { SpotIllustration } from "../../components/SpotIllustration";
 import { cn } from "../../lib/cn";
+import { MOBILE_SHAPE } from "../../lib/designTokens";
 import { useContentBottomInset, useContentTopInset } from "../../components/ui/useBarInset";
 import {
   buildFileTree,
@@ -33,6 +35,8 @@ function cachedFileTree(entries: ReadonlyArray<ProjectEntry>): ReadonlyArray<Fil
 
 const FileTreeRow = function FileTreeRow(props: {
   readonly item: VisibleFileTreeNode;
+  readonly isFirst: boolean;
+  readonly isLast: boolean;
   readonly selected: boolean;
   readonly expanded: boolean;
   readonly loading: boolean;
@@ -42,7 +46,7 @@ const FileTreeRow = function FileTreeRow(props: {
 }) {
   const { node, depth } = props.item;
 
-  return (
+  const row = (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={node.path}
@@ -61,7 +65,7 @@ const FileTreeRow = function FileTreeRow(props: {
       }}
       className={cn(
         "mx-2 min-h-[42px] flex-row items-center gap-2 rounded-[12px] px-2 active:bg-subtle",
-        props.selected && "bg-thread-selected",
+        props.selected && (Platform.OS === "android" ? "bg-thread-selected" : "bg-primary/12"),
       )}
       style={{ paddingLeft: 8 + depth * 18 }}
     >
@@ -80,7 +84,9 @@ const FileTreeRow = function FileTreeRow(props: {
         className={cn(
           "min-w-0 flex-1 text-sm leading-normal",
           props.selected
-            ? "font-t3-bold text-thread-selected-foreground"
+            ? Platform.OS === "android"
+              ? "font-t3-bold text-thread-selected-foreground"
+              : "font-t3-bold text-foreground"
             : node.ignored
               ? "font-t3-medium text-foreground-tertiary"
               : "font-t3-medium text-foreground-secondary",
@@ -93,6 +99,22 @@ const FileTreeRow = function FileTreeRow(props: {
         <AppActivityIndicator size="small" accessibilityLabel={`Loading ${node.name}`} />
       ) : null}
     </Pressable>
+  );
+  if (Platform.OS === "android") return row;
+
+  // The list is virtualized, so the rows share one grouped card by rounding its ends themselves.
+  return (
+    <View
+      className="mx-4 overflow-hidden border-continuous bg-grouped-card"
+      style={{
+        borderTopLeftRadius: props.isFirst ? MOBILE_SHAPE.group.ios : 0,
+        borderTopRightRadius: props.isFirst ? MOBILE_SHAPE.group.ios : 0,
+        borderBottomLeftRadius: props.isLast ? MOBILE_SHAPE.group.ios : 0,
+        borderBottomRightRadius: props.isLast ? MOBILE_SHAPE.group.ios : 0,
+      }}
+    >
+      {row}
+    </View>
   );
 };
 
@@ -200,6 +222,8 @@ export function FileTreeBrowser(props: {
   const renderItem = ({ item }: { readonly item: VisibleFileTreeNode }) => (
     <FileTreeRow
       item={item}
+      isFirst={item === visibleNodes[0]}
+      isLast={item === visibleNodes[visibleNodes.length - 1]}
       selected={item.node.kind === "file" && item.node.path === selectedPath}
       expanded={expandedPaths.has(item.node.path)}
       loading={loadingDirectories.has(item.node.path)}
@@ -252,7 +276,7 @@ export function FileTreeBrowser(props: {
         <View className="px-4 py-5">
           {props.error && props.entries.length === 0 ? (
             <>
-              <Text className="text-sm font-t3-bold text-foreground">Files unavailable</Text>
+              <Text className="font-workspace text-sm text-foreground">Files unavailable</Text>
               <Text
                 accessibilityRole="alert"
                 className="mt-1 text-xs leading-normal text-foreground-muted"
@@ -272,7 +296,13 @@ export function FileTreeBrowser(props: {
             <AppActivityIndicator size="small" />
           ) : (
             <>
-              <Text className="text-sm font-t3-bold text-foreground">No files found</Text>
+              <View className="mb-3">
+                <SpotIllustration
+                  kind={props.searchQuery.trim().length > 0 ? "search" : "file"}
+                  width={88}
+                />
+              </View>
+              <Text className="font-workspace text-sm text-foreground">No files found</Text>
               <Text className="mt-1 text-xs leading-normal text-foreground-muted">
                 {props.searchQuery.trim().length > 0
                   ? "Try a different search."

@@ -12,6 +12,7 @@ import { useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { AppText as Text } from "../../components/ui/AppText";
+import { StatusDot } from "../../components/ui/StatusDot";
 import type { PendingApproval } from "../../lib/threadActivity";
 
 export interface PendingApprovalCardProps {
@@ -38,11 +39,14 @@ export function PendingApprovalCard(props: PendingApprovalCardProps) {
   const disabled = !canRespond || props.respondingApprovalId === props.approval.requestId;
   const [explanationOpen, setExplanationOpen] = useState(false);
   return (
-    <View className="gap-2.5 rounded-[20px] border border-border bg-card-alt p-4">
-      <Text className="font-t3-bold text-2xs uppercase tracking-[1.1px] text-foreground-secondary">
-        Approval needed
-      </Text>
-      <Text className="font-t3-bold text-lg text-foreground">
+    <View className="gap-2.5 rounded-3xl border-continuous bg-warning p-4">
+      <View className="flex-row items-center gap-1.5">
+        <StatusDot tone="attention" />
+        <Text className="font-t3-bold text-2xs uppercase tracking-[1.1px] text-warning-foreground">
+          Approval needed
+        </Text>
+      </View>
+      <Text className="font-workspace text-lg text-foreground">
         {props.approval.appName ?? props.approval.requestKind}
       </Text>
       {props.approval.detail ? (
@@ -78,7 +82,9 @@ export function PendingApprovalCard(props: PendingApprovalCardProps) {
         </Text>
       ) : null}
       {warning ? (
-        <Text className="font-sans text-xs leading-normal text-warning-foreground">{warning}</Text>
+        <Text className="font-t3-bold text-xs leading-normal text-warning-foreground">
+          {warning}
+        </Text>
       ) : null}
       <View className="gap-2">
         {options.map((option) => (

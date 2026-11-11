@@ -1,3 +1,4 @@
+import { SpotIllustration } from "../../components/SpotIllustration";
 import * as Dialog from "../../components/ui/Dialog";
 import {
   AuthTerminalReadScope,
@@ -311,6 +312,7 @@ export function ThreadTerminalRouteScreen(props: ThreadTerminalRouteScreenProps)
     return (
       <View className="flex-1 bg-screen">
         <EmptyState
+          illustration={<SpotIllustration kind="terminal" />}
           title="Thread unavailable"
           detail="This terminal route needs an active thread and workspace."
         />
@@ -785,6 +787,7 @@ function ThreadTerminal(props: {
     return (
       <View className="flex-1 bg-screen">
         <EmptyState
+          illustration={<SpotIllustration kind="terminal" />}
           title="Terminal unavailable"
           detail="This thread does not have a workspace root yet, so there is nowhere to open a shell."
         />
@@ -868,6 +871,9 @@ function ThreadTerminal(props: {
             />
           ) : !canReadTerminal && !canOperateTerminal ? (
             <EmptyState
+              illustration={
+                terminalSession.error ? undefined : <SpotIllustration kind="terminal" />
+              }
               title={
                 terminalSession.error
                   ? "Could not check terminal access"
@@ -890,6 +896,7 @@ function ThreadTerminal(props: {
             <EmptyState title="Could not load terminals" detail={sessionsError} />
           ) : !canOperateTerminal && !hasTerminalTarget ? (
             <EmptyState
+              illustration={<SpotIllustration kind="terminal" />}
               title="No terminal sessions"
               detail="Existing terminals will appear here when another client opens one."
             />

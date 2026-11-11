@@ -22,6 +22,8 @@ export function PullRequestOverviewLoading({
     reviewDecision: summary.reviewDecision ?? undefined,
     viewerReviewRequested: "viewerReviewRequested" in summary && summary.viewerReviewRequested,
   });
+  // Matches the loaded rows, which only ask for attention while the pull request is open.
+  const open = summary.state === "open";
   const conflicting = summary.mergeability === "conflicting";
   const clean = summary.mergeability === "mergeable";
   return (
@@ -34,6 +36,7 @@ export function PullRequestOverviewLoading({
       <PullRequestCardGroup>
         <PullRequestCardRow
           compact
+          attention={open && summary.checksState === "failing"}
           title={
             summary.checksState === "passing"
               ? "Checks completed"
@@ -62,6 +65,7 @@ export function PullRequestOverviewLoading({
         </PullRequestCardRow>
         <PullRequestCardRow
           compact
+          attention={open && summary.reviewDecision === "changes-requested"}
           title={review?.accessibleLabel ?? "Reviews"}
           icon={review?.icon ?? "bubble.left"}
           tint={review?.tint}

@@ -4,6 +4,7 @@ import {
   THREAD_LIST_V2_MONO_FONT as MONO_FONT,
   THREAD_LIST_V2_ROW_CONTENT_CLASS_NAME,
   THREAD_LIST_V2_ROW_DIVIDERS,
+  THREAD_LIST_V2_GROUPED_ROWS,
   selectedThreadRowColors,
   getThreadListV2NewBranchMenuTitle,
   getThreadListV2RowAppearance,
@@ -38,6 +39,7 @@ import type { ThreadListProvider } from "../../state/thread-list-environments";
 import { SymbolView, type AppSymbolName } from "../../components/ui/AppSymbol";
 import { AppText as Text } from "../../components/ui/AppText";
 import { Menu } from "../../components/ui/Menu";
+import { StatusDot, type ActivityTone } from "../../components/ui/StatusDot";
 import { EnvironmentMachineSymbol } from "../../components/EnvironmentMachineSymbol";
 import { ProjectFavicon } from "../../components/ProjectFavicon";
 import {
@@ -93,6 +95,8 @@ interface StatusLabel {
   readonly icon: AppSymbolName;
   readonly className: string;
   readonly iconTintClassName: string;
+  /** Set for the statuses the shared dot vocabulary covers; the dot then stands in for the icon. */
+  readonly tone?: ActivityTone;
 }
 const STATUS_LABEL_BY_STATUS: Partial<Record<ThreadListV2Status, StatusLabel>> = {
   approval: {
@@ -100,24 +104,28 @@ const STATUS_LABEL_BY_STATUS: Partial<Record<ThreadListV2Status, StatusLabel>> =
     icon: "exclamationmark.shield",
     className: "text-warning-foreground",
     iconTintClassName: "accent-warning-foreground",
+    tone: "attention",
   },
   input: {
     label: "Input",
     icon: "questionmark.bubble",
-    className: "text-adaptive-indigo-600-300",
-    iconTintClassName: "accent-adaptive-indigo-600-300",
+    className: "text-warning-foreground",
+    iconTintClassName: "accent-warning-foreground",
+    tone: "attention",
   },
   request: {
     label: "Request",
     icon: "person.crop.circle",
-    className: "text-adaptive-fuchsia-600-300",
-    iconTintClassName: "accent-adaptive-fuchsia-600-300",
+    className: "text-warning-foreground",
+    iconTintClassName: "accent-warning-foreground",
+    tone: "attention",
   },
   working: {
     label: null,
     icon: "circle.dashed",
-    className: "text-adaptive-sky-600-400",
-    iconTintClassName: "accent-adaptive-sky-600-400",
+    className: "text-primary-text",
+    iconTintClassName: "accent-primary-text",
+    tone: "working",
   },
   waiting: {
     label: null,
@@ -192,6 +200,8 @@ const LEGACY_MENU_ACTIONS: MenuAction[] = [
 function ThreadListV2Section(props: {
   readonly label: string;
   readonly pane?: "screen" | "sidebar";
+  /** Titles a grouped card, so it takes the grouped-list section title look. */
+  readonly grouped?: boolean;
   readonly tone?: "default" | "snoozed";
   readonly disclosure?: {
     readonly expanded: boolean;
@@ -203,11 +213,27 @@ function ThreadListV2Section(props: {
 }) {
   const snoozed = props.tone === "snoozed";
   const sidebarPane = props.pane === "sidebar";
-  const className = cn(
-    "mb-1.5 mt-4 flex-row items-center gap-2.5",
-    props.pane === "sidebar" ? "px-3" : "px-5",
-  );
-  const content = (
+  const grouped = props.grouped === true && THREAD_LIST_V2_GROUPED_ROWS && !sidebarPane;
+  const className = grouped
+    ? "mb-2 mt-5 flex-row items-center justify-between gap-2.5 px-6"
+    : cn("mb-1.5 mt-4 flex-row items-center gap-2.5", props.pane === "sidebar" ? "px-3" : "px-5");
+  const content = grouped ? (
+    <>
+      <Text textRole="footnote" className="shrink font-workspace text-foreground-muted">
+        {props.label}
+      </Text>
+      {props.disclosure ? (
+        <SymbolView
+          name="chevron.down"
+          size={11}
+          tintColorClassName="accent-chevron"
+          type="monochrome"
+          weight="semibold"
+          style={{ transform: [{ rotate: props.disclosure.expanded ? "180deg" : "0deg" }] }}
+        />
+      ) : null}
+    </>
+  ) : (
     <>
       <Text
         className={cn(
@@ -269,6 +295,7 @@ function ThreadListV2Section(props: {
 const ThreadListV2SectionDivider = memo(function ThreadListV2SectionDivider(props: {
   readonly label: string;
   readonly pane?: "screen" | "sidebar";
+  readonly grouped?: boolean;
 }) {
   return <ThreadListV2Section {...props} />;
 });
@@ -279,6 +306,7 @@ type ThreadListV2ShelfHeaderProps = {
   readonly expanded: boolean;
   readonly onToggle: () => void;
   readonly pane?: "screen" | "sidebar";
+  readonly grouped?: boolean;
 };
 
 const SHELF_LABEL = { working: "Working", snoozed: "Snoozed", settled: "Settled" } as const;
@@ -291,6 +319,7 @@ function ThreadListV2ShelfHeader(
     <ThreadListV2Section
       label={props.expanded ? label : `${label} (${props.count})`}
       pane={props.pane}
+      grouped={props.grouped}
       tone={props.kind === "snoozed" ? "snoozed" : "default"}
       disclosure={{
         expanded: props.expanded,
@@ -323,6 +352,7 @@ export const ThreadListV2SettledShelfHeader = memo(function ThreadListV2SettledS
 
 export const ThreadListV2ShowMoreRow = memo(function ThreadListV2ShowMoreRow(props: {
   readonly pane?: "screen" | "sidebar";
+  readonly grouped?: boolean;
   readonly hiddenCount: number;
   /** Older settled threads are loading, or their last read failed. */
   readonly state?: "loading" | "failed";
@@ -334,6 +364,7 @@ export const ThreadListV2ShowMoreRow = memo(function ThreadListV2ShowMoreRow(pro
       : props.state === "failed"
         ? "Could not load older threads. Retry"
         : `Show more (${props.hiddenCount} settled hidden)`;
+  const grouped = props.grouped === true && THREAD_LIST_V2_GROUPED_ROWS && props.pane !== "sidebar";
   return (
     <Pressable
       accessibilityRole="button"
@@ -344,7 +375,11 @@ export const ThreadListV2ShowMoreRow = memo(function ThreadListV2ShowMoreRow(pro
       }
       disabled={props.state === "loading"}
       onPress={props.onPress}
-      className="mx-4 mt-2 items-center rounded-lg border border-dashed border-border py-2.5"
+      className={
+        grouped
+          ? "mx-4 mt-3 items-center rounded-full bg-grouped-card py-3"
+          : "mx-4 mt-2 items-center rounded-lg border border-dashed border-border py-2.5"
+      }
       style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
     >
       <Text
@@ -359,6 +394,11 @@ export const ThreadListV2ShowMoreRow = memo(function ThreadListV2ShowMoreRow(pro
     </Pressable>
   );
 });
+
+/** Marks the selected row on a grouped card with a tint rather than an outline. */
+function SelectedRowWash() {
+  return <View pointerEvents="none" className="absolute inset-0 bg-primary/12" />;
+}
 
 const PENDING_TASK_MENU_ACTIONS: MenuAction[] = [
   { id: "delete", title: "Delete", image: "trash", attributes: { destructive: true } },
@@ -377,6 +417,7 @@ export const ThreadListV2PendingRow = memo(function ThreadListV2PendingRow(props
   readonly environmentMachine?: EnvironmentMachineKind;
   readonly pane?: "screen" | "sidebar";
   readonly showPendingDivider: boolean;
+  readonly startsGroup?: boolean;
   readonly showTrailingDivider?: boolean;
   readonly onSelectPendingTask: (pendingTask: PendingNewTask) => void;
   readonly onDeletePendingTask: (pendingTask: PendingNewTask) => void;
@@ -402,7 +443,11 @@ export const ThreadListV2PendingRow = memo(function ThreadListV2PendingRow(props
   const theme = useUniwindTheme();
   const sidebarPane = props.pane === "sidebar";
   const selected = props.selected ?? false;
-  const rowAppearance = getThreadListV2RowAppearance(theme, sidebarPane, selected);
+  const grouped = THREAD_LIST_V2_GROUPED_ROWS && !sidebarPane;
+  const rowAppearance = getThreadListV2RowAppearance(theme, sidebarPane, selected, {
+    start: props.startsGroup !== false,
+    end: props.showTrailingDivider === false,
+  });
   const isDraft = pendingTask.kind === "draft";
   const deleteLabel = isDraft ? "Discard" : "Delete";
   const handleDelete = useCallback(
@@ -584,7 +629,7 @@ export const ThreadListV2PendingRow = memo(function ThreadListV2PendingRow(props
   return (
     <>
       {props.showPendingDivider ? (
-        <ThreadListV2SectionDivider label="Unsent" pane={props.pane} />
+        <ThreadListV2SectionDivider label="Unsent" pane={props.pane} grouped />
       ) : null}
       <ThreadSwipeable
         dormant={dormant}
@@ -625,13 +670,14 @@ export const ThreadListV2PendingRow = memo(function ThreadListV2PendingRow(props
               onPress={() => onSelectPendingTask(pendingTask)}
               style={rowAppearance.cardStyle}
             >
+              {grouped && selected ? <SelectedRowWash /> : null}
               {sidebarPane ? (
                 rowContent
               ) : (
                 <View>
                   <View className={THREAD_LIST_V2_ROW_CONTENT_CLASS_NAME}>{rowContent}</View>
                   {THREAD_LIST_V2_ROW_DIVIDERS && props.showTrailingDivider !== false ? (
-                    <View className="ml-5 h-px bg-border-subtle" />
+                    <View className="ml-4 h-px bg-border-subtle" />
                   ) : null}
                 </View>
               )}
@@ -659,6 +705,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   readonly environmentLabel: string | null;
   readonly environmentMachine?: EnvironmentMachineKind;
   readonly pane?: "screen" | "sidebar";
+  readonly startsGroup?: boolean;
   readonly showTrailingDivider?: boolean;
   readonly selected?: boolean;
   readonly fullSwipeWidth?: number;
@@ -764,7 +811,11 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   const theme = useUniwindTheme();
   const sidebarPane = props.pane === "sidebar";
   const selected = props.selected === true;
-  const rowAppearance = getThreadListV2RowAppearance(theme, sidebarPane, selected);
+  const grouped = THREAD_LIST_V2_GROUPED_ROWS && !sidebarPane;
+  const rowAppearance = getThreadListV2RowAppearance(theme, sidebarPane, selected, {
+    start: props.startsGroup !== false,
+    end: props.showTrailingDivider === false,
+  });
 
   const status = resolveThreadListV2Status(thread);
   const isUnread = status === "ready" && threadHasUnseenCompletion(thread);
@@ -1234,17 +1285,21 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
             </Pressable>
           ) : statusLabel ? (
             <View className="flex-row items-center gap-1">
-              <SymbolView
-                name={statusLabel.icon}
-                size={13}
-                tintColorClassName={
-                  selected
-                    ? selectedThreadRowColors.iconTintClassName
-                    : statusLabel.iconTintClassName
-                }
-                type="monochrome"
-                weight="semibold"
-              />
+              {statusLabel.tone ? (
+                <StatusDot tone={statusLabel.tone} />
+              ) : (
+                <SymbolView
+                  name={statusLabel.icon}
+                  size={13}
+                  tintColorClassName={
+                    selected
+                      ? selectedThreadRowColors.iconTintClassName
+                      : statusLabel.iconTintClassName
+                  }
+                  type="monochrome"
+                  weight="semibold"
+                />
+              )}
               <Text
                 className={cn(
                   "text-xs font-t3-bold",
@@ -1442,13 +1497,14 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
         }}
         style={rowAppearance.cardStyle}
       >
+        {grouped && selected ? <SelectedRowWash /> : null}
         {sidebarPane ? (
           fadedCardContent
         ) : (
           <View>
             <View className={THREAD_LIST_V2_ROW_CONTENT_CLASS_NAME}>{fadedCardContent}</View>
             {THREAD_LIST_V2_ROW_DIVIDERS && props.showTrailingDivider !== false ? (
-              <View className="ml-5 h-px bg-border-subtle" />
+              <View className="ml-4 h-px bg-border-subtle" />
             ) : null}
           </View>
         )}
@@ -1469,6 +1525,14 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
         }}
         style={rowAppearance.style}
       >
+        {grouped && selected ? <SelectedRowWash /> : null}
+        {/* Overlaid so the separator adds no height to the fixed-height slim row. */}
+        {grouped && props.showTrailingDivider !== false ? (
+          <View
+            pointerEvents="none"
+            className="absolute bottom-0 left-4 right-0 h-px bg-border-subtle"
+          />
+        ) : null}
         <View
           className={cn(
             THREAD_LIST_V2_ROW_CONTENT_CLASS_NAME,

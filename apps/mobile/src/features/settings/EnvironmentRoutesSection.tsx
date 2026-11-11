@@ -35,7 +35,6 @@ import { ListActionRow as SettingsActionRow } from "../../components/ui/ListActi
 import { SettingsDragHandle } from "./components/SettingsDragHandle";
 import { SettingsSection } from "./components/SettingsSection";
 
-const ICON_SIZE = Platform.OS === "android" ? 24 : 22;
 const REMOVE_SIZE = 20;
 
 const ROUTE_ICONS: Record<ConnectionRouteKind, AppSymbolName> = {
@@ -287,21 +286,34 @@ function RouteRow(props: {
           .filter((part) => part !== null)
           .join(", ")}
         className={cn(
-          "min-w-0 flex-1 flex-row items-center gap-4 py-4 android:py-3",
+          "min-w-0 flex-1 flex-row items-center gap-3 py-3",
           address !== null ? "android:min-h-18" : "android:min-h-14",
           !props.editing && "pr-4",
         )}
       >
-        <SymbolView
-          name={ROUTE_ICONS[connectionRouteKind(route)]}
-          size={ICON_SIZE}
-          tintColorClassName="accent-icon"
-          type="monochrome"
-          weight="regular"
-        />
+        {Platform.OS === "android" ? (
+          <SymbolView
+            name={ROUTE_ICONS[connectionRouteKind(route)]}
+            size={24}
+            tintColorClassName="accent-icon"
+            type="monochrome"
+            weight="regular"
+          />
+        ) : (
+          // The same tinted tile as ListRowLayout's icon, which this reorderable row can't use.
+          <View className="size-8 items-center justify-center rounded-[10px] border-continuous bg-primary/10">
+            <SymbolView
+              name={ROUTE_ICONS[connectionRouteKind(route)]}
+              size={17}
+              tintColorClassName="accent-primary"
+              type="monochrome"
+              weight="medium"
+            />
+          </View>
+        )}
         <View className="min-w-0 flex-1 gap-0.5 android:gap-1">
           <View className="flex-row items-center gap-2">
-            <Text numberOfLines={1} className="shrink text-lg text-foreground android:text-base">
+            <Text textRole="body" numberOfLines={1} className="shrink text-foreground">
               {label}
             </Text>
             {props.inUse ? (

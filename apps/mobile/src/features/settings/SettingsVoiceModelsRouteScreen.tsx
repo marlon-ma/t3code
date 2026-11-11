@@ -1,3 +1,4 @@
+import { SpotIllustration } from "../../components/SpotIllustration";
 import { useAtomValue } from "@effect/atom-react";
 import type { StaticScreenProps } from "@react-navigation/native";
 import type { EnvironmentId } from "@t3tools/contracts";
@@ -8,11 +9,14 @@ import { FlatList, Platform, View } from "react-native";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { AppText as Text } from "../../components/ui/AppText";
 import { EmptyState } from "../../components/ui/EmptyState";
-import { cn } from "../../lib/cn";
+import { MOBILE_SHAPE } from "../../lib/designTokens";
 import { useEnvironments } from "../../state/environments";
 import { voiceSpeechBenchmarksAtom } from "../voice-input/voiceDestination";
 import { PullRequestSearchSheet } from "../pull-requests/PullRequestSearchSheet";
 import { useVoiceModels, VoiceModelRow } from "./VoiceModelSection";
+
+const GROUP_RADIUS =
+  Platform.OS === "android" ? MOBILE_SHAPE.group.android : MOBILE_SHAPE.group.ios;
 
 export function SettingsVoiceModelsRouteScreen({
   route,
@@ -73,11 +77,13 @@ export function SettingsVoiceModelsRouteScreen({
           }
           renderItem={({ item, index }) => (
             <View
-              className={cn(
-                "overflow-hidden",
-                index === 0 && "rounded-t-2xl",
-                index === models.length - 1 && "rounded-b-2xl",
-              )}
+              className="overflow-hidden border-continuous"
+              style={{
+                borderTopLeftRadius: index === 0 ? GROUP_RADIUS : 0,
+                borderTopRightRadius: index === 0 ? GROUP_RADIUS : 0,
+                borderBottomLeftRadius: index === models.length - 1 ? GROUP_RADIUS : 0,
+                borderBottomRightRadius: index === models.length - 1 ? GROUP_RADIUS : 0,
+              }}
             >
               <VoiceModelRow model={item} voice={voice} separated={index > 0} language={language} />
             </View>
@@ -87,6 +93,7 @@ export function SettingsVoiceModelsRouteScreen({
               <AppActivityIndicator className="my-8" />
             ) : (
               <EmptyState
+                illustration={needle ? <SpotIllustration kind="search" /> : undefined}
                 title={needle ? "No models match" : "No transcription models"}
                 detail={
                   needle ? "Try another name or language." : `${label} has no models to list.`

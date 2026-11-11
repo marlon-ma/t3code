@@ -52,6 +52,11 @@
   font-family: var(--font-bold);
 }
 
+/* Display face for titles and section headings; registered at startup in workspaceFont.ts. */
+@utility font-workspace {
+  font-family: "Workspace-Manrope";
+}
+
 @utility font-t3-extrabold {
   font-family: var(--font-bold);
   font-weight: 800;

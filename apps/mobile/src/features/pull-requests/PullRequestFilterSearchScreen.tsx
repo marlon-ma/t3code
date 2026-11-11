@@ -13,6 +13,7 @@ import { FlatList, Platform } from "react-native";
 
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { SpotIllustration } from "../../components/SpotIllustration";
 import { SelectionRow } from "../../components/ui/SelectionRow";
 import { composerPullRequests } from "../../state/pull-requests";
 import { useDebouncedValue } from "../../state/queries";
@@ -151,6 +152,7 @@ export function PullRequestFilterSearchScreen({
               <AppActivityIndicator className="my-8" />
             ) : (
               <EmptyState
+                illustration={<SpotIllustration kind="search" />}
                 title={
                   hosted.failed
                     ? "Couldn't search the host"

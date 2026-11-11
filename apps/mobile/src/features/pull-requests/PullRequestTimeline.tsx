@@ -122,7 +122,7 @@ function TimelineComment({
         <View
           className={
             linked
-              ? "gap-2 overflow-hidden rounded-2xl border border-primary bg-primary/10 p-3"
+              ? "gap-2 overflow-hidden rounded-2xl bg-primary/12 p-3"
               : "gap-2 overflow-hidden rounded-2xl bg-grouped-card p-3"
           }
         >

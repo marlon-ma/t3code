@@ -13,11 +13,14 @@ import {
 } from "@t3tools/client-runtime/pull-request-reviewers";
 import type { PullRequestReviewerCandidate } from "@t3tools/contracts";
 import { useRef, useState } from "react";
-import { FlatList, Pressable, ScrollView, View } from "react-native";
+import { FlatList, Platform, Pressable, ScrollView, View } from "react-native";
 import { NativeScrollView } from "../../native/NativeScrollViewMarker";
 import { useContentTopInset, useSearchToolbarInset } from "../../components/ui/useBarInset";
 import { AppText as Text, AppTextInput as TextInput } from "../../components/ui/AppText";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { SpotIllustration } from "../../components/SpotIllustration";
+import { cn } from "../../lib/cn";
+import { MOBILE_SHAPE } from "../../lib/designTokens";
 import { Button } from "../../components/ui/Button";
 import { SymbolView } from "../../components/ui/AppSymbol";
 import { composerPullRequests } from "../../state/pull-requests";
@@ -27,6 +30,8 @@ import { useAtomCommand } from "../../state/use-atom-command";
 import { PullRequestAvatar } from "./PullRequestPresentation";
 import { pullRequestTarget, type PullRequestParams } from "./usePullRequestDiff";
 
+const GROUP_RADIUS =
+  Platform.OS === "android" ? MOBILE_SHAPE.group.android : MOBILE_SHAPE.group.ios;
 const TRUNCATED_LABELS: Record<ReviewerTruncation, (error: string | null) => string> = {
   unsearchable: () =>
     "The provider has more reviewers than it returned. Find additional reviewers on the provider.",
@@ -177,8 +182,10 @@ export function PullRequestReviewersScreen({ route }: StaticScreenProps<PullRequ
               ) : null}
             </View>
           }
-          renderItem={({ item }) => {
+          renderItem={({ item, index }) => {
             const id = `${item.kind}:${item.id}`;
+            const first = index === 0;
+            const last = index === candidates.length - 1;
             return (
               <Pressable
                 accessibilityRole="button"
@@ -186,7 +193,17 @@ export function PullRequestReviewersScreen({ route }: StaticScreenProps<PullRequ
                 accessibilityState={{ disabled: !allowed || pending !== null }}
                 disabled={!allowed || pending !== null}
                 onPress={() => void update(item)}
-                className="min-h-16 flex-row items-center gap-3 border-b border-border-subtle px-4 py-3 active:opacity-70"
+                // Rows draw one grouped card between them, rounded at the list's two ends.
+                className={cn(
+                  "mx-4 min-h-16 flex-row items-center gap-3 border-b border-continuous bg-grouped-card px-4 py-3 active:opacity-70",
+                  last ? "border-transparent" : "border-border-subtle",
+                )}
+                style={{
+                  borderTopLeftRadius: first ? GROUP_RADIUS : 0,
+                  borderTopRightRadius: first ? GROUP_RADIUS : 0,
+                  borderBottomLeftRadius: last ? GROUP_RADIUS : 0,
+                  borderBottomRightRadius: last ? GROUP_RADIUS : 0,
+                }}
               >
                 <PullRequestAvatar actor={item} size={32} />
                 <View className="min-w-0 flex-1 gap-0.5">
@@ -201,10 +218,12 @@ export function PullRequestReviewersScreen({ route }: StaticScreenProps<PullRequ
                 {pending === id ? (
                   <AppActivityIndicator />
                 ) : item.isRequested ? (
-                  <View className="flex-row items-center gap-1.5">
-                    <Text className="text-xs text-foreground-muted">Requested</Text>
-                    <SymbolView name="checkmark" size={14} tintColorClassName="accent-icon" />
-                  </View>
+                  <SymbolView
+                    name="checkmark"
+                    size={16}
+                    tintColorClassName="accent-primary-text"
+                    weight="semibold"
+                  />
                 ) : (
                   <SymbolView name="plus" size={16} tintColorClassName="accent-icon-muted" />
                 )}
@@ -217,6 +236,7 @@ export function PullRequestReviewersScreen({ route }: StaticScreenProps<PullRequ
             ) : (
               <View className="px-4 py-6">
                 <EmptyState
+                  illustration={<SpotIllustration kind={query.trim() ? "search" : "pullRequest"} />}
                   title={
                     queryError
                       ? "Couldn't load reviewers"

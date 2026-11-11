@@ -162,10 +162,10 @@ export function PullRequestGuideStopScreen({ route }: StaticScreenProps<GuideSto
             ) : (
               <>
                 <GuideNotice state={state} />
-                <Text className="text-2xl leading-8 font-t3-semibold">{stop.title}</Text>
+                <Text className="text-2xl leading-8 font-workspace">{stop.title}</Text>
                 <PullRequestMarkdown lineBreaks={false} markdown={stop.summary} />
                 {stop.attention ? (
-                  <View className="gap-3 rounded-xl border border-border bg-grouped-card p-4">
+                  <View className="gap-3 rounded-3xl border-continuous bg-grouped-card p-4">
                     <View className="flex-row items-center gap-2">
                       <SymbolView name="eye" size={17} tintColorClassName="accent-icon-muted" />
                       <Text className="text-sm font-t3-semibold">
@@ -201,7 +201,7 @@ export function PullRequestGuideStopScreen({ route }: StaticScreenProps<GuideSto
                 {diff.error ? <Text className="text-danger-foreground">{diff.error}</Text> : null}
                 {notes.length ? (
                   <View className="gap-4">
-                    <Text className="font-t3-semibold">Notes on this stop</Text>
+                    <Text className="font-workspace">Notes on this stop</Text>
                     {notes.map(({ marker, note }) => (
                       <View key={marker} className="flex-row gap-3">
                         <View className="h-7 w-7 items-center justify-center rounded-lg bg-grouped-card">
@@ -239,7 +239,7 @@ export function PullRequestGuideStopScreen({ route }: StaticScreenProps<GuideSto
                 ) : null}
                 {stop.questions.length ? (
                   <View className="gap-3">
-                    <Text className="font-t3-semibold">Questions to consider</Text>
+                    <Text className="font-workspace">Questions to consider</Text>
                     {stop.questions.map((question) => (
                       <PullRequestMarkdown key={question} lineBreaks={false} markdown={question} />
                     ))}

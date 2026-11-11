@@ -1,3 +1,4 @@
+import { SpotIllustration } from "../../components/SpotIllustration";
 import { formatFilePathForClipboard } from "@t3tools/client-runtime/media-actions";
 import { resolvePathLinkTarget } from "@t3tools/shared/fileLinks";
 import { resolveFilesystemReadAccess } from "@t3tools/client-runtime/state/filesystem";
@@ -317,7 +318,11 @@ function FileContent(props: {
   if (props.fileError && props.fileContents === null) {
     return (
       <View className="flex-1 items-center justify-center bg-sheet px-6">
-        <EmptyState title="File unavailable" detail={props.fileError} />
+        <EmptyState
+          illustration={<SpotIllustration kind="file" />}
+          title="File unavailable"
+          detail={props.fileError}
+        />
       </View>
     );
   }
@@ -421,7 +426,11 @@ function FilesUnavailable({
       <AppBar title="Files" onBack={onBack} onBackToList={onBack} hideBottomBorder />
       <ScreenContent>
         <View className="flex-1 items-center justify-center px-6">
-          <EmptyState title={title} detail={detail} />
+          <EmptyState
+            illustration={<SpotIllustration kind="file" />}
+            title={title}
+            detail={detail}
+          />
         </View>
       </ScreenContent>
     </View>

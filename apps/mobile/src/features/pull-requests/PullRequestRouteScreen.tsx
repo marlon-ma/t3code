@@ -72,6 +72,7 @@ import { useAndroidControlSizing } from "../../components/ui/useAndroidControlSi
 import { useAdaptiveWorkspaceLayout } from "../layout/AdaptiveWorkspaceLayout";
 import { useAndroidWorkspaceBack } from "../layout/workspace/useAndroidWorkspaceNavigation";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { SpotIllustration } from "../../components/SpotIllustration";
 import { SegmentedControl } from "../../components/ui/SegmentedControl";
 import { SymbolView } from "../../components/ui/AppSymbol";
 import { ScreenContent } from "../../components/ui/ScreenContent";
@@ -223,7 +224,7 @@ function PullRequestIdentity(props: {
           <View className="h-3 w-12 rounded bg-subtle-strong" />
         )}
       </View>
-      <Text selectable className="text-xl font-t3-bold leading-7">
+      <Text selectable className="text-xl font-workspace leading-7">
         {pr.title}
       </Text>
       <View className="flex-row items-center gap-2">
@@ -1366,6 +1367,7 @@ function PullRequestFileRouteContent({ route }: PullRequestFileRouteProps) {
             !seekingFile ? (
             <View style={{ paddingTop: contentTopInset }}>
               <EmptyState
+                illustration={<SpotIllustration kind="file" />}
                 title="Only test files changed"
                 detail="Test files are hidden from this review."
                 action={<Button label="Show test files" tone="contrast" onPress={filter.showAll} />}
@@ -1374,6 +1376,7 @@ function PullRequestFileRouteContent({ route }: PullRequestFileRouteProps) {
             </View>
           ) : !result.isPending && !result.error && !seekingFile ? (
             <EmptyState
+              illustration={<SpotIllustration kind="file" />}
               title="Diff unavailable"
               detail={`Open this ${terminology.singular} on its provider to view the changes.`}
               variant="plain"

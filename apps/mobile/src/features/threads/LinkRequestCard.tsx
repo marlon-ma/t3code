@@ -41,6 +41,7 @@ import { ListChoiceRow as SettingsChoiceRow } from "../../components/ui/ListChoi
 import { SettingsSection } from "../settings/components/SettingsSection";
 import { Button } from "../../components/ui/Button";
 import { Sheet } from "../../components/ui/Sheet";
+import { StatusDot } from "../../components/ui/StatusDot";
 import { RUNTIME_MODE_CHOICES } from "./thread-settings-options";
 
 /** The same five levels as web's access picker: read-only, then the runtime modes. */
@@ -131,13 +132,16 @@ function PendingLinkRequest(props: {
   };
 
   return (
-    <View className="mb-3 gap-3 rounded-[20px] border border-border bg-card-alt p-4">
+    <View className="mb-3 gap-3 rounded-3xl border-continuous bg-warning p-4">
       <View className="gap-1">
-        <Text className="font-t3-bold text-base text-foreground">
-          {picksMachine(item)
-            ? "Link a machine to this environment"
-            : `Link ${target} to this environment`}
-        </Text>
+        <View className="flex-row items-center gap-1.5">
+          <StatusDot tone="attention" />
+          <Text className="min-w-0 flex-1 font-workspace text-base text-foreground">
+            {picksMachine(item)
+              ? "Link a machine to this environment"
+              : `Link ${target} to this environment`}
+          </Text>
+        </View>
         {item.reason.trim() ? (
           <Text className="font-sans text-sm leading-5 text-foreground-muted">{item.reason}</Text>
         ) : null}
@@ -169,7 +173,7 @@ function PendingLinkRequest(props: {
               className="px-1 py-1 active:opacity-60 disabled:opacity-50"
               onPress={() => void decline()}
             >
-              <Text className="font-sans text-xs text-foreground-muted">Decline</Text>
+              <Text className="font-sans text-xs text-warning-foreground">Decline</Text>
             </Pressable>
           </View>
         </>
@@ -310,7 +314,7 @@ function LinkRequestSheet(props: {
         {needsAddress && !useExisting && address.trim() ? (
           <View
             accessibilityRole="alert"
-            className="gap-1 rounded-xl border border-warning-border bg-warning p-3"
+            className="gap-1 rounded-2xl border-continuous bg-warning p-3"
           >
             <Text className="font-t3-bold text-sm text-warning-foreground">Check this address</Text>
             <Text className="font-sans text-xs leading-snug text-warning-foreground">

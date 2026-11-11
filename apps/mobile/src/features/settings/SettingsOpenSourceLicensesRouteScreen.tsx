@@ -14,9 +14,12 @@ import { useMemo, useState } from "react";
 import { Linking, Platform, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { SpotIllustration } from "../../components/SpotIllustration";
 import { SymbolView } from "../../components/ui/AppSymbol";
+import { EmptyState } from "../../components/ui/EmptyState";
 import { AppText as Text } from "../../components/ui/AppText";
 import { ListRow } from "../../components/ui/ListRow";
+import { MOBILE_SHAPE } from "../../lib/designTokens";
 import { SettingsScreen } from "./components/SettingsScreen";
 
 import { getMobileThirdPartyLicenses } from "./mobileThirdPartyLicenses";
@@ -31,12 +34,30 @@ function useMobileThirdPartyLicenses() {
   }, []);
 }
 
+const GROUP_RADIUS =
+  Platform.OS === "android" ? MOBILE_SHAPE.group.android : MOBILE_SHAPE.group.ios;
+
+// Each row draws its own slice of the grouped card, since the list is virtualized.
 function LicenseRow(props: {
   readonly entry: ThirdPartyLicenseEntry;
+  readonly first: boolean;
+  readonly last: boolean;
   readonly onPress: () => void;
 }) {
   return (
-    <View className="border-b border-border">
+    <View
+      className={
+        props.first
+          ? "overflow-hidden border-continuous"
+          : "overflow-hidden border-t border-border-subtle border-continuous"
+      }
+      style={{
+        borderTopLeftRadius: props.first ? GROUP_RADIUS : 0,
+        borderTopRightRadius: props.first ? GROUP_RADIUS : 0,
+        borderBottomLeftRadius: props.last ? GROUP_RADIUS : 0,
+        borderBottomRightRadius: props.last ? GROUP_RADIUS : 0,
+      }}
+    >
       <ListRow
         label={props.entry.name}
         description={[props.entry.version, props.entry.license].filter(Boolean).join(" · ")}
@@ -61,9 +82,17 @@ export function SettingsOpenSourceLicensesRouteScreen() {
   const manifest = useMobileThirdPartyLicenses();
   const entries = manifest?.entries ?? [];
   const filteredEntries = filterThirdPartyLicenseEntries(entries, query);
-  const renderItem = ({ item }: { readonly item: ThirdPartyLicenseEntry }) => (
+  const renderItem = ({
+    item,
+    index,
+  }: {
+    readonly item: ThirdPartyLicenseEntry;
+    readonly index: number;
+  }) => (
     <LicenseRow
       entry={item}
+      first={index === 0}
+      last={index === filteredEntries.length - 1}
       onPress={() =>
         navigation.navigate("SettingsOpenSourceLicense", {
           entryKey: thirdPartyLicenseEntryKey(item),
@@ -90,21 +119,26 @@ export function SettingsOpenSourceLicensesRouteScreen() {
         renderScrollComponent={NativeScrollView}
         className="flex-1"
         contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingTop: 16,
           paddingBottom:
             searchInset + (Platform.OS === "ios" ? 18 : Math.max(insets.bottom, 18) + 18),
         }}
         contentInsetAdjustmentBehavior="automatic"
         data={filteredEntries}
         estimatedItemSize={78}
+        // The last row's rounding depends on how many rows the search leaves.
+        extraData={filteredEntries.length}
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
         keyExtractor={thirdPartyLicenseEntryKey}
         ListEmptyComponent={
-          <View className="items-center px-6 py-12">
-            <Text className="text-center text-base text-foreground-muted">
-              No licenses match that search.
-            </Text>
-          </View>
+          <EmptyState
+            variant="plain"
+            illustration={<SpotIllustration kind="search" />}
+            title="No results"
+            detail="No licenses match that search."
+          />
         }
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
@@ -145,7 +179,7 @@ export function SettingsOpenSourceLicenseRouteScreen({ route }: LicenseDetailPro
         showsVerticalScrollIndicator={false}
       >
         <View className="gap-2 px-1">
-          <Text className="text-2xl font-t3-bold text-foreground">{entry.name}</Text>
+          <Text className="text-2xl font-workspace text-foreground">{entry.name}</Text>
           <Text className="text-base leading-normal text-foreground-muted">
             {[entry.version, entry.license, formatLicenseBundles(entry.bundles)]
               .filter((value): value is string => Boolean(value))
@@ -170,7 +204,10 @@ export function SettingsOpenSourceLicenseRouteScreen({ route }: LicenseDetailPro
           ) : null}
         </View>
 
-        <View className="overflow-hidden rounded-[24px] border-continuous bg-grouped-card p-4">
+        <View
+          className="overflow-hidden border-continuous bg-grouped-card p-4"
+          style={{ borderRadius: GROUP_RADIUS }}
+        >
           <Text selectable className="font-mono text-base leading-normal text-foreground">
             {entry.noticeText}
           </Text>

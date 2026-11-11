@@ -24,6 +24,7 @@ import { Atom } from "effect/reactivity";
 import { Linking, Pressable, View } from "react-native";
 
 import { AppText as Text } from "../../components/ui/AppText";
+import { StatusDot, type ActivityTone } from "../../components/ui/StatusDot";
 import { ProviderIcon } from "../../components/ProviderIcon";
 import { environmentPresentations } from "../../state/presentation";
 import { serverEnvironment } from "../../state/server";
@@ -36,20 +37,25 @@ import {
   limitsRefreshFailuresAtom,
   refreshEnvironmentLimits,
 } from "./usageLimitsRefresh";
-import { usageProviderKind, useProviderColors } from "./usageProviders";
 
 const PACE_LABEL = { ahead: "ahead of pace", on: "on pace", under: "under pace" } as const;
 
 type Driver = ServerProvider["driver"];
 
-function useBarColor(driver: Driver): string | null {
-  const colors = useProviderColors();
-  const kind = usageProviderKind(driver);
-  return kind ? colors[kind] : null;
+// At or below this much left, a window reads as near its limit.
+const NEAR_LIMIT_PERCENT = 30;
+
+/** A limit window as a status: running low or burning faster than even pace needs a look. */
+export function limitTone(
+  remainingPercent: number,
+  pace: keyof typeof PACE_LABEL | null,
+): ActivityTone {
+  return remainingPercent <= NEAR_LIMIT_PERCENT || pace === "ahead" ? "attention" : "idle";
 }
 
 function WindowRow(props: {
   readonly window: ServerProviderUsageWindow;
+  /** The account's own accent, when it has one; replaces the default fill while healthy. */
   readonly color: string | null;
   readonly now: number;
 }) {
@@ -65,20 +71,18 @@ function WindowRow(props: {
       : Math.min(Math.max((barWidth * timeLeft) / 100, 3), barWidth - 3);
   const bar = (
     <View
-      className="h-1.5 flex-row overflow-hidden rounded-full bg-subtle"
+      className="h-1.5 flex-row overflow-hidden rounded-full bg-primary/10"
       style={barWidth > 0 ? { width: barWidth } : undefined}
     >
       <View
         className={
-          remaining <= 10
-            ? "h-full rounded-full bg-red-500"
-            : remaining <= 30
-              ? "h-full rounded-full bg-amber-500"
-              : "h-full rounded-full bg-foreground"
+          remaining <= NEAR_LIMIT_PERCENT
+            ? "h-full rounded-full bg-warning-foreground"
+            : "h-full rounded-full bg-primary"
         }
         style={[
           { flex: remaining },
-          remaining > 30 && props.color ? { backgroundColor: props.color } : null,
+          remaining > NEAR_LIMIT_PERCENT && props.color ? { backgroundColor: props.color } : null,
         ]}
       />
       <View style={{ flex: 100 - remaining }} />
@@ -86,8 +90,11 @@ function WindowRow(props: {
   );
   return (
     <View className="gap-1">
-      <View className="flex-row items-baseline justify-between gap-3">
-        <Text className="text-sm text-foreground">{window.label}</Text>
+      <View className="flex-row items-center justify-between gap-3">
+        <View className="min-w-0 shrink flex-row items-center gap-2">
+          <StatusDot tone={limitTone(remaining, pace)} />
+          <Text className="shrink text-sm text-foreground">{window.label}</Text>
+        </View>
         <Text className="text-sm font-t3-medium tabular-nums text-foreground">
           {remaining}% left
         </Text>
@@ -171,8 +178,7 @@ export function AccountLimits(props: {
   readonly footer?: ReactNode;
 }) {
   const { limits, now, dense = false } = props;
-  const providerColor = useBarColor(props.driver);
-  const color = normalizeProviderAccentColor(props.accentColor) ?? providerColor;
+  const color = normalizeProviderAccentColor(props.accentColor) ?? null;
   if (!limits) return null;
   const notice = limitsNotice(limits);
   const externalUsage = limits.externalUsage;
@@ -186,7 +192,7 @@ export function AccountLimits(props: {
       <View className="flex-row items-center gap-2">
         <ProviderIcon provider={props.driver} size={16} />
         <View className="min-w-0 flex-1 flex-row items-baseline gap-2">
-          <Text className="text-base font-t3-medium text-foreground">{props.label}</Text>
+          <Text className="font-workspace text-base text-foreground">{props.label}</Text>
           {props.instanceLabel !== props.label ? (
             <AccountInstanceLabel key={props.instanceLabel} value={props.instanceLabel} />
           ) : null}

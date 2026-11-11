@@ -4,6 +4,7 @@ import type { MobileThemeVariables } from "../../lib/mobileTheme";
 export const THREAD_LIST_V2_MONO_FONT = "monospace";
 export const THREAD_LIST_V2_ROW_CONTENT_CLASS_NAME = "px-3 py-2.5";
 export const THREAD_LIST_V2_ROW_DIVIDERS = false;
+export const THREAD_LIST_V2_GROUPED_ROWS = false;
 export const THREAD_LIST_V2_SIDEBAR_ROW_STYLE = {
   borderRadius: 20,
   paddingHorizontal: 12,
@@ -15,6 +16,11 @@ export const THREAD_LIST_V2_SIDEBAR_ROW_CONTAINER_STYLE = {
   marginHorizontal: 8,
   marginVertical: 2,
 } satisfies ViewStyle;
+
+export interface ThreadListV2RowGroupPosition {
+  readonly start: boolean;
+  readonly end: boolean;
+}
 
 export const selectedThreadRowColors = {
   foregroundClassName: "text-thread-selected-foreground",
@@ -31,6 +37,7 @@ export function getThreadListV2RowAppearance(
   theme: MobileThemeVariables,
   sidebarPane: boolean,
   selected: boolean,
+  _group?: ThreadListV2RowGroupPosition,
 ) {
   const selectedBackgroundColor = theme["--color-thread-selected"];
   const backgroundColor = theme[sidebarPane ? "--color-drawer" : "--color-screen"];

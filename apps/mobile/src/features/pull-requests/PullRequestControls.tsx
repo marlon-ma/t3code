@@ -13,6 +13,9 @@ import { Button } from "../../components/ui/Button";
 import { IconButton } from "../../components/ui/IconButton";
 import { Toolbar } from "../../components/ui/Toolbar";
 import { Menu } from "../../components/ui/Menu";
+import { StatusDot } from "../../components/ui/StatusDot";
+import { cn } from "../../lib/cn";
+import { MOBILE_SHAPE } from "../../lib/designTokens";
 
 import { useNativeLayoutMetrics } from "../../native/native-layout-metrics";
 import { type PullRequestParams } from "./usePullRequestDiff";
@@ -25,7 +28,11 @@ export function PullRequestCardGroup(props: { readonly children: ReactNode }) {
   return (
     <Animated.View
       layout={PR_ROW_LAYOUT}
-      className="overflow-hidden rounded-[22px] border border-composer-border border-continuous bg-grouped-card"
+      className="overflow-hidden border-continuous bg-grouped-card"
+      style={{
+        borderRadius:
+          Platform.OS === "android" ? MOBILE_SHAPE.group.android : MOBILE_SHAPE.group.ios,
+      }}
     >
       {props.children}
     </Animated.View>
@@ -41,6 +48,8 @@ export function PullRequestCardRow(props: {
   readonly onPress?: () => void;
   readonly accessibilityLabel?: string;
   readonly destructive?: boolean;
+  /** Marks a row the viewer has to act on: a warning wash and dot in place of the icon. */
+  readonly attention?: boolean;
   readonly last?: boolean;
   readonly compact?: boolean;
   readonly menu?: boolean;
@@ -54,22 +63,34 @@ export function PullRequestCardRow(props: {
       accessibilityState={props.expanded === undefined ? undefined : { expanded: props.expanded }}
       onPress={props.onPress}
       disabled={!props.onPress && !props.menu}
-      className={`${props.compact ? "min-h-11 py-2.5" : "min-h-13 py-3"} flex-row items-center gap-3 px-4 ${props.last || props.compact ? "" : "border-b border-border-subtle"} ${props.onPress ? "active:opacity-70" : ""}`}
+      className={cn(
+        "flex-row items-center gap-3 px-4",
+        props.compact ? "min-h-11 py-2.5" : "min-h-13 py-3",
+        !props.last && !props.compact && "border-b border-border-subtle",
+        props.attention && "bg-warning",
+        props.onPress && "active:opacity-70",
+      )}
     >
-      <SymbolView
-        name={props.icon}
-        size={18}
-        tintColorClassName={
-          props.destructive ? "accent-danger-foreground" : (props.tint ?? "accent-icon-muted")
-        }
-      />
+      {props.attention ? (
+        <View className="size-[18px] items-center justify-center">
+          <StatusDot tone="attention" />
+        </View>
+      ) : (
+        <SymbolView
+          name={props.icon}
+          size={18}
+          tintColorClassName={
+            props.destructive ? "accent-danger-foreground" : (props.tint ?? "accent-icon-muted")
+          }
+        />
+      )}
       <View className="min-w-0 flex-1 gap-0.5">
         <Text
-          className={
-            props.destructive
-              ? "text-sm font-t3-medium text-danger-foreground"
-              : "text-sm font-t3-medium"
-          }
+          className={cn(
+            "text-sm font-t3-medium",
+            props.destructive && "text-danger-foreground",
+            props.attention && "text-warning-foreground",
+          )}
         >
           {props.title}
         </Text>
@@ -82,7 +103,11 @@ export function PullRequestCardRow(props: {
       {props.children ??
         (props.value ? (
           <Text
-            className={`${props.compact ? "max-w-[38%] text-2xs" : "max-w-[60%] text-xs"} shrink text-right text-foreground-muted`}
+            className={cn(
+              "shrink text-right",
+              props.compact ? "max-w-[38%] text-2xs" : "max-w-[60%] text-xs",
+              props.attention ? "text-warning-foreground" : "text-foreground-muted",
+            )}
             numberOfLines={2}
           >
             {props.value}

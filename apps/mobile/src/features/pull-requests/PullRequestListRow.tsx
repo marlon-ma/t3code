@@ -3,23 +3,21 @@ import {
   sourceControlClients,
 } from "@t3tools/client-runtime/source-control-clients";
 import { memo } from "react";
-import { Pressable, View } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 import { AppText as Text } from "../../components/ui/AppText";
 import { SymbolView } from "../../components/ui/AppSymbol";
 import { Menu } from "../../components/ui/Menu";
 import type { MenuProps } from "../../components/ui/Menu.types";
+import { StatusDot } from "../../components/ui/StatusDot";
 import { cn } from "../../lib/cn";
+import { MOBILE_SHAPE } from "../../lib/designTokens";
 import { RelativeTime } from "../../components/RelativeTime";
 import {
   selectedThreadRowColors,
   THREAD_LIST_V2_SIDEBAR_ROW_STYLE,
   THREAD_LIST_V2_SIDEBAR_ROW_CONTAINER_STYLE,
 } from "../threads/thread-list-v2-row-appearance";
-import {
-  PullRequestAvatar,
-  PullRequestConflictBadge,
-  PullRequestDiffStats,
-} from "./PullRequestPresentation";
+import { PullRequestAvatar, PullRequestDiffStats } from "./PullRequestPresentation";
 import {
   pullRequestLabelColor,
   pullRequestListReviewStatus,
@@ -29,9 +27,13 @@ import {
 import {
   pullRequestChecksStatus,
   pullRequestConflict,
+  pullRequestListDot,
   pullRequestStatus,
 } from "./pullRequestStatus";
 import { PullRequestGlyph } from "./pullRequestGlyphs";
+
+const GROUP_RADIUS =
+  Platform.OS === "android" ? MOBILE_SHAPE.group.android : MOBILE_SHAPE.group.ios;
 
 export const PullRequestListRow = memo(
   function PullRequestListRow(props: {
@@ -39,6 +41,9 @@ export const PullRequestListRow = memo(
     readonly onSelect: (item: EnvironmentPullRequestListEntry) => void;
     readonly selected: boolean;
     readonly sidebar: boolean;
+    /** Position in the list: full-width rows draw one grouped card between them. */
+    readonly first: boolean;
+    readonly last: boolean;
     readonly busy: boolean;
     readonly getActions: (item: EnvironmentPullRequestListEntry) => MenuProps["actions"];
     readonly onAction: (item: EnvironmentPullRequestListEntry, action: string) => void;
@@ -63,8 +68,12 @@ export const PullRequestListRow = memo(
     const conflict = pullRequestConflict(item);
     const review = pullRequestListReviewStatus(item);
     const checks = item.checksState ? pullRequestChecksStatus(item.checksState) : null;
+    const dot = pullRequestListDot(item);
     return (
-      <View style={props.sidebar ? THREAD_LIST_V2_SIDEBAR_ROW_CONTAINER_STYLE : undefined}>
+      <View
+        style={props.sidebar ? THREAD_LIST_V2_SIDEBAR_ROW_CONTAINER_STYLE : undefined}
+        className={props.sidebar ? undefined : "px-4"}
+      >
         <Menu
           shouldOpenOnLongPress
           title={`#${item.number} · ${item.repository}`}
@@ -78,34 +87,45 @@ export const PullRequestListRow = memo(
             accessibilityHint="Double tap to open. Touch and hold for quick actions."
             onPress={() => props.onSelect(item)}
             disabled={props.busy}
-            style={props.sidebar ? THREAD_LIST_V2_SIDEBAR_ROW_STYLE : undefined}
+            style={
+              props.sidebar
+                ? THREAD_LIST_V2_SIDEBAR_ROW_STYLE
+                : {
+                    borderTopLeftRadius: props.first ? GROUP_RADIUS : 0,
+                    borderTopRightRadius: props.first ? GROUP_RADIUS : 0,
+                    borderBottomLeftRadius: props.last ? GROUP_RADIUS : 0,
+                    borderBottomRightRadius: props.last ? GROUP_RADIUS : 0,
+                  }
+            }
             className={cn(
               "flex-row gap-3 overflow-hidden",
-              !props.sidebar && "px-4 active:bg-row-hover",
+              !props.sidebar && "border-continuous pl-4 active:bg-row-hover",
+              !props.sidebar && !props.selected && "bg-grouped-card",
               props.sidebar && "bg-drawer",
               props.sidebar && !props.selected && "active:bg-thread-hover",
               props.selected && "bg-thread-selected",
               props.busy && "opacity-50",
             )}
           >
-            <View className={cn("self-start", props.sidebar ? "pt-0.5" : "pt-2.5")}>
-              <SymbolView name={status.icon} size={20} tintColorClassName={status.tint} />
-              {conflict ? (
-                <PullRequestConflictBadge
-                  surfaceClassName={
-                    props.selected
-                      ? "text-thread-selected"
-                      : props.sidebar
-                        ? "text-drawer"
-                        : "text-screen"
-                  }
-                />
-              ) : null}
+            {/* Centred on the repository line, which is as tall as its 16pt avatar. */}
+            <View
+              className={cn(
+                "h-4 w-2 items-center justify-center self-start",
+                !props.sidebar && "mt-2.5",
+              )}
+            >
+              {"tone" in dot ? (
+                <StatusDot tone={dot.tone} />
+              ) : (
+                <View className={cn("size-2 rounded-full", dot.className)} />
+              )}
             </View>
             <View
               className={cn(
                 "min-w-0 flex-1 gap-1",
-                !props.sidebar && "border-b border-border-subtle py-2.5",
+                // The last row keeps a clear hairline so every row measures the same.
+                !props.sidebar && "border-b py-2.5 pr-4",
+                !props.sidebar && (props.last ? "border-transparent" : "border-border-subtle"),
               )}
             >
               <View className="flex-row items-center gap-1.5">
@@ -175,6 +195,15 @@ export const PullRequestListRow = memo(
                     </Text>
                   ) : null}
                 </View>
+                {conflict ? (
+                  <View className="shrink-0" accessibilityLabel={conflict.label}>
+                    <SymbolView
+                      name={PullRequestGlyph.conflicting}
+                      size={13}
+                      tintColorClassName="accent-danger-foreground"
+                    />
+                  </View>
+                ) : null}
                 {checks ? (
                   <View className="shrink-0" accessibilityLabel={`Checks ${item.checksState}`}>
                     <SymbolView name={checks.icon} size={13} tintColorClassName={checks.tint} />
@@ -203,6 +232,8 @@ export const PullRequestListRow = memo(
     pullRequestListRowsAreEqual(previous.item, next.item) &&
     previous.selected === next.selected &&
     previous.sidebar === next.sidebar &&
+    previous.first === next.first &&
+    previous.last === next.last &&
     previous.busy === next.busy &&
     previous.onSelect === next.onSelect &&
     previous.onAction === next.onAction &&

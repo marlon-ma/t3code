@@ -28,6 +28,33 @@ import { SliderRow } from "../../components/ui/SliderRow";
 import * as Dialog from "../../components/ui/Dialog";
 import { useAppearancePreferences } from "../settings/appearance/AppearancePreferencesProvider";
 import { MOBILE_THEME_IDS } from "../../lib/mobileTheme";
+import { DeviceCard } from "../../components/DeviceCard";
+import {
+  DeviceIllustration,
+  type DeviceIllustrationStatus,
+} from "../../components/DeviceIllustration";
+import { SpotIllustration, type SpotIllustrationKind } from "../../components/SpotIllustration";
+import { StatusDot } from "../../components/ui/StatusDot";
+
+const STATUSES = [
+  "attention",
+  "working",
+  "idle",
+  "offline",
+] as const satisfies readonly DeviceIllustrationStatus[];
+
+// One machine kind per distinct drawing: laptop, small box, tower.
+const DEVICE_KINDS = ["laptop", "mac-mini", "desktop"] as const;
+
+const SPOT_KINDS = [
+  "threads",
+  "project",
+  "archive",
+  "terminal",
+  "pullRequest",
+  "file",
+  "search",
+] as const satisfies readonly SpotIllustrationKind[];
 
 const CHOICES = [
   { value: "overview", label: "Overview" },
@@ -94,6 +121,7 @@ export function ComponentCatalogScreen() {
             { value: "controls", label: "Controls" },
             { value: "forms", label: "Forms" },
             { value: "feedback", label: "Feedback" },
+            { value: "drawings", label: "Drawings" },
           ]}
           selected={page}
           onSelect={setPage}
@@ -270,6 +298,89 @@ export function ComponentCatalogScreen() {
               />
             </View>
           </View>
+        ) : null}
+        {page === "drawings" ? (
+          <>
+            <View className="gap-3">
+              <AppText className="text-lg font-t3-semibold">Status dots</AppText>
+              <View className="flex-row flex-wrap gap-x-5 gap-y-2">
+                {STATUSES.map((tone) => (
+                  <View key={tone} className="flex-row items-center gap-2">
+                    <StatusDot tone={tone} />
+                    <AppText className="text-sm text-foreground-muted">{tone}</AppText>
+                  </View>
+                ))}
+              </View>
+            </View>
+            <View className="gap-3">
+              <AppText className="text-lg font-t3-semibold">Device illustrations</AppText>
+              {DEVICE_KINDS.map((kind) => (
+                <View key={kind} className="gap-1">
+                  <AppText className="text-sm text-foreground-muted">{kind}</AppText>
+                  <View className="flex-row flex-wrap gap-3">
+                    {STATUSES.map((status) => (
+                      <View key={status} className="items-center gap-1">
+                        <DeviceIllustration kind={kind} status={status} width={72} />
+                        <AppText className="text-2xs text-foreground-muted">{status}</AppText>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ))}
+            </View>
+            <View className="gap-3">
+              <AppText className="text-lg font-t3-semibold">Device cards</AppText>
+              <View className="flex-row flex-wrap gap-3">
+                <DeviceCard
+                  label="Studio"
+                  statusLabel="needs you"
+                  detail="2 need you"
+                  kind="mac-studio"
+                  status="attention"
+                  index={0}
+                  onPress={announceAction}
+                />
+                <DeviceCard
+                  label="MacBook"
+                  statusLabel="working"
+                  detail="1 working"
+                  kind="laptop"
+                  status="working"
+                  index={1}
+                  onPress={announceAction}
+                />
+                <DeviceCard
+                  label="Selected"
+                  statusLabel="idle"
+                  kind="mac-mini"
+                  status="idle"
+                  selected
+                  index={2}
+                  onPress={announceAction}
+                />
+                <DeviceCard
+                  label="Server"
+                  statusLabel="offline"
+                  kind="server"
+                  status="offline"
+                  selected={false}
+                  index={3}
+                  onPress={announceAction}
+                />
+              </View>
+            </View>
+            <View className="gap-3">
+              <AppText className="text-lg font-t3-semibold">Spot illustrations</AppText>
+              <View className="flex-row flex-wrap gap-3">
+                {SPOT_KINDS.map((kind) => (
+                  <View key={kind} className="items-center gap-1">
+                    <SpotIllustration kind={kind} width={88} />
+                    <AppText className="text-2xs text-foreground-muted">{kind}</AppText>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </>
         ) : null}
       </ScreenScrollView>
       {page === "feedback" && notice ? (

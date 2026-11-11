@@ -210,7 +210,7 @@ function EmptyState(props: {
         type="monochrome"
         weight="regular"
       />
-      <Text className="text-center text-base text-foreground">{props.title}</Text>
+      <Text className="text-center font-workspace text-base text-foreground">{props.title}</Text>
       <Text className="text-center text-sm text-foreground-muted">{props.detail}</Text>
     </View>
   );

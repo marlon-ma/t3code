@@ -22,6 +22,7 @@ import { AppText as Text } from "../../components/ui/AppText";
 import { ControlPill } from "../../components/ui/ControlPill";
 import { Menu } from "../../components/ui/Menu";
 import { ScreenScrollView } from "../../components/ui/ScreenScrollView";
+import { StatusDot, type ActivityTone } from "../../components/ui/StatusDot";
 import { environmentPresentations } from "../../state/presentation";
 import { useEnvironmentQuery } from "../../state/query";
 import { serverEnvironment } from "../../state/server";
@@ -243,22 +244,34 @@ function ProviderAccount({
   const usesCredentials =
     provider.driver === "antigravity" &&
     (provider.auth.type === "gemini-api-key" || provider.auth.type === "agent-platform");
-  const status =
-    active || state?.phase === "failed" || state?.phase === "cancelled"
-      ? state.message
-      : !provider.enabled
-        ? "Turned off"
-        : signedIn
-          ? "Signed in"
-          : isDiscovering
-            ? "Discovering sign-in methods…"
-            : needsExternalSetup
-              ? "No in-app sign-in advertised. Follow the provider's docs to finish setup."
-              : !provider.installed
-                ? "Not installed"
-                : usesCredentials
-                  ? "Connect to load models"
-                  : "Not signed in";
+  const tone: ActivityTone =
+    active || isDiscovering
+      ? "working"
+      : state?.phase === "failed"
+        ? "attention"
+        : !provider.enabled
+          ? "offline"
+          : signedIn
+            ? "idle"
+            : !needsExternalSetup && !provider.installed
+              ? "offline"
+              : "attention";
+  const showsFlowMessage = active || state?.phase === "failed" || state?.phase === "cancelled";
+  const status = showsFlowMessage
+    ? state.message
+    : !provider.enabled
+      ? "Turned off"
+      : signedIn
+        ? "Signed in"
+        : isDiscovering
+          ? "Discovering sign-in methods…"
+          : needsExternalSetup
+            ? "No in-app sign-in advertised. Follow the provider's docs to finish setup."
+            : !provider.installed
+              ? "Not installed"
+              : usesCredentials
+                ? "Connect to load models"
+                : "Not signed in";
   // A provider with several sign-in methods picks one from a menu on the same control.
   const methodActions: MenuAction[] = methods.map((method) => ({
     id: `method:${method.id}`,
@@ -405,7 +418,15 @@ function ProviderAccount({
             : "min-h-16 flex-row items-center gap-3 px-4 py-3"
         }
       >
-        <ProviderAccountSummary key={email} name={name} status={status} email={email} />
+        <ProviderAccountSummary
+          key={email}
+          name={name}
+          status={status}
+          tone={tone}
+          // The green dot already says a provider at rest is signed in.
+          statusShown={showsFlowMessage || !provider.enabled || !signedIn}
+          email={email}
+        />
         {trailing}
       </View>
       {interaction?.type === "deviceCode" ||
@@ -510,21 +531,38 @@ function ProviderAccount({
 function ProviderAccountSummary({
   name,
   status,
+  tone,
+  statusShown,
   email,
 }: {
   readonly name: string;
   readonly status: string | null | undefined;
+  readonly tone: ActivityTone;
+  /** False when the dot alone carries the status; screen readers still hear it. */
+  readonly statusShown: boolean;
   readonly email: string | undefined;
 }) {
   const [revealed, setRevealed] = useState(false);
+  const detail = [statusShown ? status : null, email ? (revealed ? email : "••••••@••••••") : null]
+    .filter(Boolean)
+    .join(" · ");
   const content = (
     <>
-      <Text textRole="body" className="text-foreground" numberOfLines={1}>
-        {name}
-      </Text>
-      <Text accessibilityLiveRegion="polite" textRole="footnote" className="text-foreground-muted">
-        {email ? `${status} · ${revealed ? email : "••••••@••••••"}` : status}
-      </Text>
+      <View className="flex-row items-center gap-2">
+        <StatusDot tone={tone} />
+        <Text textRole="body" className="shrink text-foreground" numberOfLines={1}>
+          {name}
+        </Text>
+      </View>
+      {detail ? (
+        <Text
+          accessibilityLiveRegion="polite"
+          textRole="footnote"
+          className="text-foreground-muted"
+        >
+          {detail}
+        </Text>
+      ) : null}
     </>
   );
   if (!email) {

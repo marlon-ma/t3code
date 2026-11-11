@@ -7,6 +7,8 @@ import { useCallback, useState } from "react";
 import { AppState, View } from "react-native";
 
 import { AppText as Text } from "../../components/ui/AppText";
+import { StatusDot } from "../../components/ui/StatusDot";
+import { cn } from "../../lib/cn";
 import { useEnvironmentServerConfig } from "../../state/entities";
 import { peerLinkEnvironment } from "../../state/peerLinks";
 import { useEnvironmentQuery } from "../../state/query";
@@ -45,7 +47,7 @@ export function LinkedEnvironmentsSection(props: {
   return (
     <View className="mt-5 gap-3">
       <SettingsSection title={`Linked from ${props.environmentLabel}`}>
-        {links.data.links.map((link) => {
+        {links.data.links.map((link, index) => {
           const health = peerLinkHealth(link, now);
           const status =
             health.kind === "expired"
@@ -56,20 +58,38 @@ export function LinkedEnvironmentsSection(props: {
                   ? health.detail
                   : health.expiresInDays !== null
                     ? `Expires in ${health.expiresInDays} ${health.expiresInDays === 1 ? "day" : "days"}`
-                    : "Reachable";
+                    : null;
           return (
-            <View key={link.environmentId} className="gap-0.5 p-4">
-              <Text className="text-base font-t3-bold text-foreground">{link.label}</Text>
-              <Text
-                className={
-                  health.kind === "reachable" && health.expiresInDays === null
-                    ? "text-xs text-foreground-muted"
-                    : "text-xs text-danger-foreground"
-                }
-                numberOfLines={2}
+            <View
+              key={link.environmentId}
+              className={cn(
+                "min-h-14 justify-center gap-0.5 px-4 py-3",
+                index > 0 && "border-t border-border-subtle",
+              )}
+            >
+              <View
+                accessible
+                accessibilityLabel={status === null ? `${link.label}, Reachable` : link.label}
+                className="flex-row items-center gap-2"
               >
-                {status}
-              </Text>
+                <StatusDot
+                  tone={
+                    health.kind === "reachable"
+                      ? "idle"
+                      : health.kind === "unreachable"
+                        ? "offline"
+                        : "attention"
+                  }
+                />
+                <Text className="min-w-0 shrink text-base text-foreground" numberOfLines={1}>
+                  {link.label}
+                </Text>
+              </View>
+              {status === null ? null : (
+                <Text className="text-xs text-danger-foreground" numberOfLines={2}>
+                  {status}
+                </Text>
+              )}
             </View>
           );
         })}

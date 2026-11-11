@@ -1,3 +1,4 @@
+import { DeviceIllustration } from "../../components/DeviceIllustration";
 import { Button } from "../../components/ui/Button";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { ConnectionTraceId } from "./ConnectionTraceId";
@@ -5,7 +6,6 @@ import {
   type EnvironmentConnectionPhase,
   type EnvironmentConnectionPresentation,
 } from "@t3tools/client-runtime/connection";
-import { SymbolView } from "../../components/ui/AppSymbol";
 import { View } from "react-native";
 
 import { AppText as Text } from "../../components/ui/AppText";
@@ -69,15 +69,10 @@ export function EnvironmentConnectionNotice(props: {
         {isRetrying ? (
           <AppActivityIndicator size="small" colorClassName={"accent-icon-muted"} />
         ) : (
-          <SymbolView
-            name={props.connection.phase === "offline" ? "wifi.slash" : "bolt.horizontal.circle"}
-            size={24}
-            tintColorClassName={"accent-icon-muted"}
-            type="monochrome"
-          />
+          <DeviceIllustration kind="laptop" status="offline" width={104} />
         )}
 
-        <Text className="text-center text-lg font-t3-bold text-foreground">
+        <Text className="text-center text-lg font-workspace text-foreground">
           {noticeTitle(props.connection.phase, props.environmentLabel)}
         </Text>
         <Text className="text-center text-sm leading-normal text-foreground-muted">

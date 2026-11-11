@@ -21,7 +21,9 @@ export function GuideNotice({ state }: { readonly state: ReturnType<typeof useRe
       entering={compact ? NOTICE_ENTER : undefined}
       exiting={PR_ROW_EXIT}
       className={
-        compact ? "mb-5 rounded-2xl bg-grouped-card p-4" : "rounded-2xl bg-grouped-card p-5"
+        compact
+          ? "mb-5 rounded-3xl border-continuous bg-grouped-card p-4"
+          : "rounded-3xl border-continuous bg-grouped-card p-5"
       }
       accessibilityLiveRegion="polite"
       accessibilityState={{ busy }}
@@ -32,9 +34,7 @@ export function GuideNotice({ state }: { readonly state: ReturnType<typeof useRe
           size={19}
           tintColorClassName={failed ? "accent-danger-foreground" : "accent-icon-muted"}
         />
-        <Text className="text-base font-t3-semibold">
-          {compact ? notice.title : "Review guide"}
-        </Text>
+        <Text className="text-base font-workspace">{compact ? notice.title : "Review guide"}</Text>
       </View>
       <View style={compact ? undefined : { minHeight: 100 }} className="pt-3 pb-4">
         <Text className="text-sm leading-6 text-foreground-muted">{notice.description}</Text>

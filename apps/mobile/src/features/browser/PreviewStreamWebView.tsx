@@ -429,7 +429,7 @@ function PreviewStreamDocumentView({
         ) : null}
       </View>
       {!compact && fileChooser && control?.controller === "you" ? (
-        <View className="absolute inset-x-3 top-16 gap-3 rounded-xl border border-secondary-border bg-secondary p-4">
+        <View className="absolute inset-x-3 top-16 gap-3 rounded-3xl border border-secondary-border border-continuous bg-secondary p-4">
           <AppText className="text-sm text-secondary-foreground">
             The page asks for {fileChooser.multiple ? "files" : "a file"}.
           </AppText>
@@ -444,7 +444,7 @@ function PreviewStreamDocumentView({
         </View>
       ) : null}
       {!compact && control?.dialog ? (
-        <View className="absolute inset-x-3 top-16 gap-3 rounded-xl border border-secondary-border bg-secondary p-4">
+        <View className="absolute inset-x-3 top-16 gap-3 rounded-3xl border border-secondary-border border-continuous bg-secondary p-4">
           <AppText className="text-sm text-secondary-foreground">{control.dialog.message}</AppText>
           {control.controller === "you" ? (
             <>

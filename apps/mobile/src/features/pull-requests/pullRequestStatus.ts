@@ -7,6 +7,7 @@ import type {
   PullRequestMergeability,
 } from "@t3tools/contracts";
 import type { AppSymbolName } from "../../components/ui/AppSymbol";
+import type { ActivityTone } from "../../components/ui/StatusDot";
 import { PullRequestGlyph } from "./pullRequestGlyphs";
 
 const STATES = {
@@ -45,6 +46,25 @@ const STATES = {
 
 export function pullRequestStatus(pr: Pick<PullRequestListEntry, "state" | "isDraft">) {
   return STATES[pr.isDraft && pr.state === "open" ? "draft" : pr.state];
+}
+
+/**
+ * The list row's leading dot. An open pull request shows what it needs right now; the states with
+ * no activity meaning keep their own mark (merged violet, draft hollow).
+ */
+export function pullRequestListDot(
+  pr: Pick<
+    PullRequestListEntry,
+    "state" | "isDraft" | "mergeability" | "checksState" | "viewerReviewRequested"
+  >,
+): { readonly tone: ActivityTone } | { readonly className: string } {
+  if (pr.state === "merged") return { className: "bg-adaptive-violet-600-400" };
+  if (pr.state === "closed") return { tone: "offline" };
+  if (pr.isDraft) return { className: "border border-foreground-muted" };
+  if (pr.viewerReviewRequested || pr.checksState === "failing" || pr.mergeability === "conflicting")
+    return { tone: "attention" };
+  if (pr.checksState === "pending") return { tone: "working" };
+  return { tone: "idle" };
 }
 
 export function pullRequestConflict(pr: {

@@ -22,6 +22,7 @@ import { useAppearancePreferences } from "../settings/appearance/AppearancePrefe
 import { SettingsScreen } from "../settings/components/SettingsScreen";
 import { AppText as Text, AppTextInput, type AppTextInputProps } from "../../components/ui/AppText";
 import { FrostedCutout } from "../../components/ui/FrostedCutout";
+import { DeviceIllustration } from "../../components/DeviceIllustration";
 import { buildPairingUrl, extractPairingUrlFromQrPayload, parsePairingUrl } from "./pairing";
 import { useRemoteConnections } from "../../state/use-remote-environment-registry";
 import { SymbolView } from "../../components/ui/AppSymbol";
@@ -71,6 +72,8 @@ function PairingForm({
   const [codeInput, setCodeInput] = useState(initialPairing.code);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  // Set as the form leaves, so the laptop drawn while connecting opens its lid on the way out.
+  const [paired, setPaired] = useState(false);
   // The user's own edit or submit dismisses the dev auto-connect report.
   const [ownAttempt, setOwnAttempt] = useState(false);
   const autoConnect = autoConnectReport(
@@ -164,6 +167,7 @@ function PairingForm({
         : Haptics.NotificationFeedbackType.Error,
     );
     if (outcome.ok) {
+      setPaired(true);
       // Replacing with Home would nest it inside any sheet below; return to the opener.
       if (!navigation.canGoBack()) {
         navigation.dispatch(StackActions.replace("Home"));
@@ -212,7 +216,9 @@ function PairingForm({
           />
 
           <View collapsable={false} className="gap-2">
-            <Text className="px-4 text-sm font-t3-medium text-foreground-muted">Or enter it</Text>
+            <Text textRole="footnote" className="px-4 font-workspace text-foreground-muted">
+              Or enter it
+            </Text>
             <View
               collapsable={false}
               className={cn(
@@ -239,16 +245,21 @@ function PairingForm({
                 }}
               />
             </View>
-            <Text
-              accessibilityLiveRegion="polite"
-              className={cn(
-                "px-4 text-sm leading-normal",
-                pairingConnectionError ? "text-danger-foreground" : "text-foreground-muted",
-              )}
-            >
-              {pairingConnectionError ??
-                "For machines on your local network or tailnet. The machine keeps its own provider credentials."}
-            </Text>
+            <View className="flex-row items-center gap-3 px-4">
+              {connecting || paired ? (
+                <DeviceIllustration kind="laptop" status={paired ? "idle" : "offline"} width={56} />
+              ) : null}
+              <Text
+                accessibilityLiveRegion="polite"
+                className={cn(
+                  "min-w-0 flex-1 text-sm leading-normal",
+                  pairingConnectionError ? "text-danger-foreground" : "text-foreground-muted",
+                )}
+              >
+                {pairingConnectionError ??
+                  "For machines on your local network or tailnet. The machine keeps its own provider credentials."}
+              </Text>
+            </View>
           </View>
 
           {hasCloudPublicConfig() ? <T3ConnectSection /> : null}
@@ -362,7 +373,7 @@ function T3ConnectSection() {
 
   return (
     <View collapsable={false} className="gap-2">
-      <Text className="px-4 text-sm font-t3-medium text-foreground-muted">
+      <Text textRole="footnote" className="px-4 font-workspace text-foreground-muted">
         Or use the managed relay
       </Text>
       {isSignedIn ? (

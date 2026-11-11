@@ -138,7 +138,7 @@ export function GitConfirmSheet(props: GitConfirmSheetProps) {
                 Confirm
               </Text>
             ) : null}
-            <Text className="android:text-xl android:font-t3-medium ios:text-center ios:text-3xl ios:font-t3-bold">
+            <Text className="android:text-xl android:font-t3-medium ios:text-center ios:text-3xl ios:font-workspace">
               {copy?.title ?? "Run action on default branch?"}
             </Text>
             <Text className="text-foreground-secondary leading-normal android:text-base ios:text-center ios:text-sm ios:font-medium">

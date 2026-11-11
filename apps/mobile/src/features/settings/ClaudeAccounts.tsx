@@ -17,6 +17,7 @@ import { AppText as Text } from "../../components/ui/AppText";
 import { ControlPill } from "../../components/ui/ControlPill";
 import { ListActionRow } from "../../components/ui/ListActionRow";
 import { Menu } from "../../components/ui/Menu";
+import { StatusDot, type ActivityTone } from "../../components/ui/StatusDot";
 import { serverEnvironment } from "../../state/server";
 import { useAtomCommand } from "../../state/use-atom-command";
 import {
@@ -68,14 +69,24 @@ export function ClaudeAccount({
   const instance = environment.serverConfig.settings.providerInstances[provider.instanceId];
   const configDir = claudeConfigDir(instance);
   const name = provider.displayName ?? "Claude";
+  // A signed-in account is the green dot alone; the other states keep their words.
   const status = !provider.enabled
     ? "Turned off"
     : provider.auth.status === "authenticated"
-      ? "Signed in"
+      ? null
       : provider.auth.status === "unauthenticated"
         ? "Not signed in"
         : !provider.installed
           ? "Not installed"
+          : null;
+  const tone: ActivityTone | null = !provider.enabled
+    ? "offline"
+    : provider.auth.status === "authenticated"
+      ? "idle"
+      : provider.auth.status === "unauthenticated"
+        ? "attention"
+        : !provider.installed
+          ? "offline"
           : null;
   const removable =
     provider.instanceId !== DEFAULT_CLAUDE_INSTANCE_ID &&
@@ -116,9 +127,16 @@ export function ClaudeAccount({
     <View className="border-t border-border-subtle">
       <View className="min-h-16 flex-row items-center gap-3 px-4 py-3">
         <View className="min-w-0 shrink grow gap-0.5">
-          <Text textRole="body" className="text-foreground" numberOfLines={1}>
-            {name}
-          </Text>
+          <View
+            accessible
+            accessibilityLabel={tone === "idle" ? `${name}, Signed in` : name}
+            className="flex-row items-center gap-2"
+          >
+            {tone ? <StatusDot tone={tone} /> : null}
+            <Text textRole="body" className="shrink text-foreground" numberOfLines={1}>
+              {name}
+            </Text>
+          </View>
           <Text textRole="footnote" className="text-foreground-muted" numberOfLines={2}>
             {[status, configDir || "Default config folder"].filter(Boolean).join(" · ")}
           </Text>

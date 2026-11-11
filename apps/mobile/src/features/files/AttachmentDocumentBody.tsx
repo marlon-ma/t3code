@@ -2,6 +2,7 @@ import type { EnvironmentId } from "@t3tools/contracts";
 import { View } from "react-native";
 
 import { EmptyState } from "../../components/ui/EmptyState";
+import { SpotIllustration } from "../../components/SpotIllustration";
 import type { useAttachmentDocument } from "../../lib/attachmentDocument";
 import { HtmlRenderWebView } from "../threads/HtmlRenderWebView";
 import { AudioFilePreview } from "./AudioFilePreview";
@@ -43,6 +44,7 @@ export function AttachmentDocumentBody(props: {
     return (
       <View className="flex-1 items-center justify-center bg-sheet px-6">
         <EmptyState
+          illustration={<SpotIllustration kind="file" />}
           title="File unavailable"
           detail={document.error}
           actionLabel="Try again"
@@ -98,6 +100,7 @@ export function AttachmentDocumentBody(props: {
   return (
     <View className="flex-1 items-center justify-center bg-sheet px-6">
       <EmptyState
+        illustration={<SpotIllustration kind="file" />}
         title="No preview for this file"
         detail={
           props.nativeError ??

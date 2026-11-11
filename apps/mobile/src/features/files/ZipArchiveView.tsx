@@ -17,7 +17,8 @@ import { fetch } from "expo/fetch";
 import { File } from "expo-file-system";
 import { useNavigation, usePreventRemove } from "@react-navigation/native";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
-import { Keyboard, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Keyboard, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
+import { MOBILE_SHAPE } from "../../lib/designTokens";
 
 import { PierreEntryIcon } from "../../components/PierreEntryIcon";
 import { AppBar } from "../../components/ui/AppBar";
@@ -26,6 +27,7 @@ import { SymbolView } from "../../components/ui/AppSymbol";
 import { AppText as Text } from "../../components/ui/AppText";
 import { Button } from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { SpotIllustration } from "../../components/SpotIllustration";
 import { Progress } from "../../components/ui/Progress";
 import { NativeScrollView } from "../../native/NativeScrollViewMarker";
 import * as Dialog from "../../components/ui/Dialog";
@@ -240,6 +242,8 @@ function useZipArchive(input: {
 
 function ZipTreeRowView(props: {
   readonly row: ZipTreeRow;
+  readonly isFirst: boolean;
+  readonly isLast: boolean;
   readonly collapsed: boolean;
   readonly onToggle: (path: string) => void;
   readonly onOpen: (entry: ZipEntry) => void;
@@ -247,7 +251,7 @@ function ZipTreeRowView(props: {
   const { node, depth } = props.row;
   const entry = node.entry;
   const folder = entry ? null : zipFolderLabel(node.label);
-  return (
+  const row = (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={entry ? entry.path : `${node.path} folder`}
@@ -287,6 +291,22 @@ function ZipTreeRowView(props: {
             : ""}
       </Text>
     </Pressable>
+  );
+  if (Platform.OS === "android") return row;
+
+  // The list is virtualized, so the rows share one grouped card by rounding its ends themselves.
+  return (
+    <View
+      className="mx-4 overflow-hidden border-continuous bg-grouped-card"
+      style={{
+        borderTopLeftRadius: props.isFirst ? MOBILE_SHAPE.group.ios : 0,
+        borderTopRightRadius: props.isFirst ? MOBILE_SHAPE.group.ios : 0,
+        borderBottomLeftRadius: props.isLast ? MOBILE_SHAPE.group.ios : 0,
+        borderBottomRightRadius: props.isLast ? MOBILE_SHAPE.group.ios : 0,
+      }}
+    >
+      {row}
+    </View>
   );
 }
 
@@ -331,7 +351,7 @@ function ZipArchiveProgress(props: {
   const { timeLeft } = props;
   return (
     <View className="flex-1 justify-center gap-3 bg-sheet px-8">
-      <Text className="text-xl font-t3-semibold text-foreground">
+      <Text className="text-xl font-t3-semibold tabular-nums text-foreground">
         {formatAttachmentSize(props.receivedBytes)}
         {props.totalBytes > 0 ? (
           <Text className="text-xl text-foreground-muted">
@@ -447,6 +467,8 @@ function ZipArchiveList(props: {
         renderItem={({ item }) => (
           <ZipTreeRowView
             row={item}
+            isFirst={item === rows[0]}
+            isLast={item === rows[rows.length - 1]}
             collapsed={collapsed.has(item.node.path)}
             onToggle={toggle}
             onOpen={props.onOpen}
@@ -456,12 +478,18 @@ function ZipArchiveList(props: {
           query ? (
             <EmptyState
               variant="plain"
+              illustration={<SpotIllustration kind="search" />}
               title={`No files match “${query.trim()}”`}
               detail="The filter checks file names and folder paths."
               action={<Button label="Clear filter" onPress={() => setQuery("")} />}
             />
           ) : (
-            <EmptyState variant="plain" title="This ZIP is empty" detail="It has no files." />
+            <EmptyState
+              variant="plain"
+              illustration={<SpotIllustration kind="archive" />}
+              title="This ZIP is empty"
+              detail="It has no files."
+            />
           )
         }
       />
@@ -770,6 +798,7 @@ function ZipEntryView(props: {
         // Closing the viewer stays here so Save and Add to chat remain reachable.
         <View className="flex-1 items-center justify-center bg-sheet px-6">
           <EmptyState
+            illustration={<SpotIllustration kind="file" />}
             title={viewerError ? "No preview for this file" : entry.name}
             detail={viewerError ?? "Open it in the file viewer, save it, or add it to chat."}
             actionLabel="Open in file viewer"

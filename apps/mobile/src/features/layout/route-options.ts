@@ -1,3 +1,4 @@
+import { WORKSPACE_FONT_FAMILY } from "../../lib/workspaceFont";
 import { Platform } from "react-native";
 
 import { GLASS_HEADER_OPTIONS, type AppScreenOptions } from "../../native/glass-header-options";
@@ -19,7 +20,7 @@ const SOLID_HEADER_OPTIONS: AppScreenOptions = {
   headerLargeTitle: false,
   headerShadowVisible: false,
   headerShown: true,
-  headerTitleStyle: { fontSize: 18, fontWeight: "800" },
+  headerTitleStyle: { fontFamily: WORKSPACE_FONT_FAMILY, fontSize: 18 },
   headerTransparent: false,
 };
 

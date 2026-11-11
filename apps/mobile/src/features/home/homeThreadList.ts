@@ -158,6 +158,8 @@ export function buildHomeProjectSections(input: {
   readonly scopes: ReadonlyArray<HomeProjectScope>;
   readonly threads: ReadonlyArray<EnvironmentThreadShell>;
   readonly searchQuery: string;
+  /** "activity" lists only projects with threads, most recently active first; "all" keeps every project in the given order. */
+  readonly order: "activity" | "all";
 }): ReadonlyArray<HomeProjectSection> {
   const query = input.searchQuery.trim().toLowerCase();
   const threadsByProjectKey = new Map<string, EnvironmentThreadShell[]>();
@@ -168,7 +170,7 @@ export function buildHomeProjectSections(input: {
     if (bucket) bucket.push(thread);
     else threadsByProjectKey.set(key, [thread]);
   }
-  return input.scopes.flatMap((scope) => {
+  const sections = input.scopes.flatMap((scope): HomeProjectSection[] => {
     const scopeThreads = scope.projectRefs.flatMap(
       (ref) => threadsByProjectKey.get(scopedProjectKey(ref.environmentId, ref.projectId)) ?? [],
     );
@@ -189,4 +191,12 @@ export function buildHomeProjectSections(input: {
       },
     ];
   });
+  if (input.order === "all") return sections;
+  // Each section's newest thread leads it, so comparing those orders projects by latest activity.
+  return Arr.sort(
+    sections.filter((section) => section.threads.length > 0),
+    Order.mapInput(Order.flip(Order.Number), (section: HomeProjectSection) =>
+      getThreadSortTimestamp(section.threads[0]!, "updated_at"),
+    ),
+  );
 }

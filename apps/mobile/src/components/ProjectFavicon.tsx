@@ -108,10 +108,10 @@ function ProjectIconGlyphView(props: { readonly glyph: ProjectIconGlyph; readonl
     );
   }
 
-  const colors = projectIconColorClassNames(glyph.color);
+  // Letter marks share the accent tile of list-row icons, so projects read as one set.
   return (
     <View
-      className={colors.background}
+      className="bg-primary/10"
       style={{
         width: size,
         height: size,
@@ -123,7 +123,7 @@ function ProjectIconGlyphView(props: { readonly glyph: ProjectIconGlyph; readonl
       <AppText
         allowFontScaling={false}
         numberOfLines={1}
-        className={`font-mono ${colors.text}`}
+        className="font-mono text-primary"
         style={{
           fontWeight: "700",
           fontSize: size * (countGlyphs(glyph.text) === 1 ? 0.6 : 0.515625),

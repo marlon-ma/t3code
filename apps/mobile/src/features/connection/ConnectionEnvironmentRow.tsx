@@ -12,7 +12,7 @@ import { Platform, Pressable, View } from "react-native";
 import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
 
 import { AppText as Text } from "../../components/ui/AppText";
-import { EnvironmentMachineSymbol } from "../../components/EnvironmentMachineSymbol";
+import { DeviceIllustration } from "../../components/DeviceIllustration";
 import { Button } from "../../components/ui/Button";
 import { IconButton } from "../../components/ui/IconButton";
 import { ThemedSwitch } from "../../components/ui/ThemedSwitch";
@@ -22,12 +22,17 @@ import { serverEnvironment } from "../../state/server";
 import { environmentPresentations } from "../../state/presentation";
 import { ConnectionDiagnosisDetails, useConnectionDiagnosis } from "./ConnectionDiagnosisDetails";
 import { ConnectionFormField } from "./ConnectionFormField";
-import { ConnectionStatusDot } from "./ConnectionStatusDot";
+import { StatusDot } from "../../components/ui/StatusDot";
+import { connectionActivityTone } from "./connectionTone";
 import { environmentStatusText } from "./environmentStatusText";
 
 function connectionStatusLabel(environment: ConnectedEnvironmentSummary): string | null {
   if (!environment.isEnabled && environment.connectionState !== "unsupported") {
     return "Off";
+  }
+  // The green dot beside the name already says a healthy connection is up.
+  if (environment.connectionState === "connected" && environment.connectionError === null) {
+    return null;
   }
   return environmentStatusText({
     phase: environment.connectionState,
@@ -40,6 +45,8 @@ export function ConnectionEnvironmentRow(props: {
   readonly environment: ConnectedEnvironmentSummary;
   readonly expanded: boolean;
   readonly opensDetails?: boolean;
+  /** Set where the screen already shows this device at full size above the row. */
+  readonly hideIllustration?: boolean;
   readonly onToggle: () => void;
   readonly onReconnect: (environmentId: EnvironmentId) => void;
   readonly onRemove: (environmentId: EnvironmentId) => void;
@@ -70,10 +77,6 @@ export function ConnectionEnvironmentRow(props: {
   const freeze = enabled
     ? hostFreezeNotice(props.environment.environmentLabel, serverConfig?.lastEventLoopStall)
     : null;
-  const isRetrying =
-    enabled &&
-    (props.environment.connectionState === "connecting" ||
-      props.environment.connectionState === "reconnecting");
   const handleSave = async () => {
     const result = await props.onUpdate(props.environment.environmentId, {
       label: label.trim(),
@@ -94,7 +97,7 @@ export function ConnectionEnvironmentRow(props: {
     <Animated.View layout={LinearTransition.duration(250)} className="bg-grouped-card">
       <View className="flex-row items-center gap-3 px-4 py-3.5">
         <Pressable
-          className="min-w-0 flex-1 gap-0.5 active:opacity-70"
+          className="min-w-0 flex-1 flex-row items-center gap-3 active:opacity-70"
           accessibilityRole="button"
           accessibilityLabel={
             props.opensDetails
@@ -103,65 +106,71 @@ export function ConnectionEnvironmentRow(props: {
           }
           onPress={props.onToggle}
         >
-          <View className="flex-row items-center gap-1.5">
-            <ConnectionStatusDot
-              state={enabled || unsupported ? props.environment.connectionState : "available"}
-              pulse={isRetrying}
-              size={8}
-            />
-            <EnvironmentMachineSymbol
+          {props.hideIllustration ? null : (
+            <DeviceIllustration
               kind={resolveEnvironmentMachineKind(serverConfig)}
-              size={14}
-              tintColorClassName="accent-foreground-muted"
+              status={
+                enabled && props.environment.connectionState === "connected" ? "idle" : "offline"
+              }
+              width={48}
             />
-            <Text
-              className="min-w-0 flex-shrink text-base font-t3-bold leading-snug text-foreground"
-              numberOfLines={1}
-            >
-              {props.environment.environmentLabel}
-            </Text>
+          )}
+          <View className="min-w-0 flex-1 gap-0.5">
+            <View className="flex-row items-center gap-1.5">
+              <StatusDot
+                tone={connectionActivityTone(
+                  enabled || unsupported ? props.environment.connectionState : "available",
+                )}
+              />
+              <Text
+                className="min-w-0 flex-shrink text-base font-t3-medium leading-snug text-foreground"
+                numberOfLines={1}
+              >
+                {props.environment.environmentLabel}
+              </Text>
+            </View>
+            {!props.environment.isRelayManaged && props.environment.displayUrl.trim() ? (
+              <Text className="text-xs text-foreground-muted" numberOfLines={1}>
+                {props.environment.displayUrl}
+              </Text>
+            ) : null}
+            {diagnosis ? (
+              <>
+                <Text className="text-xs text-danger-foreground">{diagnosis.headline}</Text>
+                {connectionState.attempt > 0 ? (
+                  <Text className="text-xs text-foreground-muted">
+                    {`Retrying · attempt ${connectionState.attempt}`}
+                  </Text>
+                ) : null}
+              </>
+            ) : statusLabel ? (
+              <Text
+                className={cn(
+                  "text-xs",
+                  hasConnectionFailure ? "text-danger-foreground" : "text-foreground-muted",
+                )}
+                numberOfLines={props.expanded ? undefined : 1}
+                selectable={props.expanded}
+              >
+                {statusLabel}
+                {statusTraceId ? (
+                  <ConnectionTraceId
+                    traceId={statusTraceId}
+                    tone={hasConnectionFailure ? "danger" : "muted"}
+                    activation="longPress"
+                  />
+                ) : null}
+              </Text>
+            ) : null}
+            {freeze ? (
+              <Text
+                className="text-xs text-warning-foreground"
+                numberOfLines={props.expanded ? undefined : 1}
+              >
+                {`${freeze.title}. ${freeze.description}`}
+              </Text>
+            ) : null}
           </View>
-          {!props.environment.isRelayManaged && props.environment.displayUrl.trim() ? (
-            <Text className="text-xs text-foreground-muted" numberOfLines={1}>
-              {props.environment.displayUrl}
-            </Text>
-          ) : null}
-          {diagnosis ? (
-            <>
-              <Text className="text-xs text-danger-foreground">{diagnosis.headline}</Text>
-              {connectionState.attempt > 0 ? (
-                <Text className="text-xs text-foreground-muted">
-                  {`Retrying · attempt ${connectionState.attempt}`}
-                </Text>
-              ) : null}
-            </>
-          ) : statusLabel ? (
-            <Text
-              className={cn(
-                "text-xs",
-                hasConnectionFailure ? "text-danger-foreground" : "text-foreground-muted",
-              )}
-              numberOfLines={props.expanded ? undefined : 1}
-              selectable={props.expanded}
-            >
-              {statusLabel}
-              {statusTraceId ? (
-                <ConnectionTraceId
-                  traceId={statusTraceId}
-                  tone={hasConnectionFailure ? "danger" : "muted"}
-                  activation="longPress"
-                />
-              ) : null}
-            </Text>
-          ) : null}
-          {freeze ? (
-            <Text
-              className="text-xs text-warning-foreground"
-              numberOfLines={props.expanded ? undefined : 1}
-            >
-              {`${freeze.title}. ${freeze.description}`}
-            </Text>
-          ) : null}
         </Pressable>
 
         <ThemedSwitch
@@ -267,7 +276,7 @@ export function ConnectionEnvironmentRow(props: {
             <View className="flex-row justify-end gap-2">
               {props.environment.isRelayManaged ? null : (
                 <Pressable
-                  className="min-h-[42px] flex-1 flex-row items-center justify-center gap-1.5 rounded-[14px] bg-primary px-3.5 py-2.5 active:opacity-70"
+                  className="min-h-[42px] flex-1 flex-row items-center justify-center gap-1.5 rounded-[14px] border-continuous bg-primary px-3.5 py-2.5 active:opacity-70"
                   onPress={handleSave}
                 >
                   <SymbolView
@@ -286,14 +295,14 @@ export function ConnectionEnvironmentRow(props: {
                 accessibilityRole="button"
                 accessibilityLabel="Reconnect environment"
                 accessibilityState={{ disabled: !enabled }}
-                className="h-[42px] w-[42px] items-center justify-center rounded-[14px] border border-input-border bg-input active:opacity-70 disabled:opacity-40"
+                className="h-[42px] w-[42px] items-center justify-center rounded-[14px] border-continuous bg-primary/10 active:opacity-70 disabled:opacity-40"
                 disabled={!enabled}
                 onPress={() => props.onReconnect(props.environment.environmentId)}
               >
                 <SymbolView
                   name="arrow.clockwise"
                   size={14}
-                  tintColorClassName="accent-icon-subtle"
+                  tintColorClassName="accent-primary"
                   type="monochrome"
                 />
               </Pressable>
@@ -301,7 +310,7 @@ export function ConnectionEnvironmentRow(props: {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Remove environment"
-                className="h-[42px] w-[42px] items-center justify-center rounded-[14px] border border-danger-border bg-danger active:opacity-70"
+                className="h-[42px] w-[42px] items-center justify-center rounded-[14px] border-continuous bg-danger-foreground/10 active:opacity-70"
                 onPress={() => props.onRemove(props.environment.environmentId)}
               >
                 <SymbolView

@@ -24,10 +24,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SymbolView } from "../../components/ui/AppSymbol";
 import { AppText as Text } from "../../components/ui/AppText";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { StatusDot } from "../../components/ui/StatusDot";
 import { ProviderIcon } from "../../components/ProviderIcon";
 import { SettingsScreen } from "../settings/components/SettingsScreen";
 import { environmentPresentations } from "../../state/presentation";
-import { ResetCredits } from "./UsageLimitsSection";
+import { UsageCard } from "./UsageCard";
+import { UsageIllustration } from "./UsageIllustration";
+import { limitTone, ResetCredits } from "./UsageLimitsSection";
 import { usageProviderKind, useProviderColors } from "./usageProviders";
 
 const PACE_LABEL = { ahead: "Ahead of pace", on: "On pace", under: "Under pace" } as const;
@@ -195,7 +199,7 @@ function PoolWindowCard({
     <>
       <View className={wide ? "gap-1" : "flex-row items-start justify-between gap-3"}>
         <View className="gap-1">
-          <Text className="text-sm font-t3-medium text-foreground">{label ?? pool.label}</Text>
+          <Text className="font-workspace text-sm text-foreground">{label ?? pool.label}</Text>
           <View className="flex-row items-baseline gap-1.5">
             <Text className="text-3xl font-t3-bold tabular-nums text-foreground">
               {pool.remainingPercent}%
@@ -204,7 +208,11 @@ function PoolWindowCard({
           </View>
         </View>
         {pool.pace ? (
-          <Text className="text-xs text-foreground-tertiary">{PACE_LABEL[pool.pace]}</Text>
+          // A dot alone cannot say why it is orange with plenty left; the pace word does.
+          <View className="h-5 flex-row items-center gap-1.5">
+            <StatusDot tone={limitTone(pool.remainingPercent, pool.pace)} size={6} />
+            <Text className="text-xs text-foreground-muted">{PACE_LABEL[pool.pace]}</Text>
+          </View>
         ) : null}
       </View>
       {description ? <Text className="text-xs text-foreground-muted">{description}</Text> : null}
@@ -381,21 +389,21 @@ function PoolWindowCard({
   );
   if (wide) {
     return (
-      <View className="flex-row items-center gap-6 rounded-[24px] border-continuous bg-grouped-card p-4">
+      <UsageCard className="flex-row items-center gap-6">
         <View className="w-44 gap-1">{summary}</View>
         <View className="min-w-0 flex-1 gap-1">
           {bar}
           {inlineLabels ? null : legend}
         </View>
-      </View>
+      </UsageCard>
     );
   }
   return (
-    <View className="gap-3 rounded-[24px] border-continuous bg-grouped-card p-4">
+    <UsageCard className="gap-3">
       {summary}
       {bar}
       {legend}
-    </View>
+    </UsageCard>
   );
 }
 
@@ -425,20 +433,25 @@ export function UsageLimitsSection({
       notices.length === 0 &&
       failedLabels.length === 0 &&
       externalLinks.length === 0 ? (
-        <Text className="py-12 text-center text-base text-foreground-muted">
-          {selected.size === 0
-            ? "Select an environment to see limits."
-            : "No provider on the selected environments reports subscription limits."}
-        </Text>
+        <EmptyState
+          variant="plain"
+          illustration={<UsageIllustration />}
+          title="No limits to show"
+          detail={
+            selected.size === 0
+              ? "Select an environment to see limits."
+              : "No provider on the selected environments reports subscription limits."
+          }
+        />
       ) : null}
       {pools.map((pool) => {
         const windows = displayLimitWindows(pool);
         return (
           <Fragment key={pool.driver}>
-            <View className="gap-3">
-              <View className="flex-row items-center gap-2 px-1">
-                <ProviderIcon provider={pool.driver} size={18} />
-                <Text className="text-base font-t3-medium text-foreground">
+            <View className="gap-2">
+              <View className="flex-row items-center gap-2 px-2">
+                <ProviderIcon provider={pool.driver} size={16} />
+                <Text textRole="footnote" className="font-workspace text-foreground-muted">
                   {providerClients.get(pool.driver)?.label ?? pool.driver}
                 </Text>
               </View>
@@ -465,8 +478,8 @@ export function UsageLimitsSection({
         );
       })}
       {externalLinks.map((link) => (
-        <View key={link.url} className="gap-3 rounded-xl border border-border-subtle p-4">
-          <Text className="text-base font-t3-medium text-foreground">{link.label}</Text>
+        <UsageCard key={link.url} className="gap-3">
+          <Text className="font-workspace text-base text-foreground">{link.label}</Text>
           <Text className="text-xs text-foreground-muted">{link.accounts.join(", ")}</Text>
           {link.message ? (
             <Text className="text-sm text-foreground-muted">{link.message}</Text>
@@ -478,7 +491,7 @@ export function UsageLimitsSection({
           >
             <Text className="text-sm font-t3-medium text-primary">Manage usage</Text>
           </Pressable>
-        </View>
+        </UsageCard>
       ))}
       {notices.length > 0 || failedLabels.length > 0 ? (
         <View
@@ -545,15 +558,18 @@ export function UsageLimitAccountScreen({ route }: AccountScreenProps) {
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
       >
         {!account || !window ? (
-          <Text className="text-base text-foreground-muted">
-            This account is no longer reporting limits on the selected environments.
-          </Text>
+          <EmptyState
+            variant="plain"
+            illustration={<UsageIllustration />}
+            title="Account unavailable"
+            detail="This account is no longer reporting limits on the selected environments."
+          />
         ) : (
           <>
             <View className="gap-2">
               <View className="flex-row items-center gap-2">
                 <ProviderIcon provider={account.driver} size={24} />
-                <Text className="flex-1 text-xl font-t3-bold text-foreground">
+                <Text className="flex-1 text-xl font-workspace text-foreground">
                   {account.displayName ??
                     providerClients.get(account.driver)?.label ??
                     account.driver}
@@ -577,8 +593,11 @@ export function UsageLimitAccountScreen({ route }: AccountScreenProps) {
                 </Text>
               ) : null}
             </View>
-            <View className="gap-3 rounded-[24px] border-continuous bg-grouped-card p-4">
-              <Text className="text-sm font-t3-medium text-foreground">{window.label}</Text>
+            <UsageCard className="gap-3">
+              <View className="flex-row items-center justify-between gap-3">
+                <Text className="font-workspace text-sm text-foreground">{window.label}</Text>
+                <StatusDot tone={limitTone(remainingPercent(window), null)} />
+              </View>
               <Text className="text-3xl font-t3-bold tabular-nums text-foreground">
                 {remainingPercent(window)}% left
               </Text>
@@ -601,9 +620,9 @@ export function UsageLimitAccountScreen({ route }: AccountScreenProps) {
                   Restores {reset.restoresPercent}% of the pool
                 </Text>
               ) : null}
-            </View>
-            <View className="gap-2 rounded-[24px] border-continuous bg-grouped-card p-4">
-              <Text className="text-sm font-t3-medium text-foreground">
+            </UsageCard>
+            <UsageCard className="gap-2">
+              <Text className="font-workspace text-sm text-foreground">
                 {account.environments.length ? "Signed in" : "Source"}
               </Text>
               {account.environments.length ? (
@@ -615,10 +634,10 @@ export function UsageLimitAccountScreen({ route }: AccountScreenProps) {
               ) : (
                 <Text className="text-sm text-foreground-muted">{account.sourceLabel}</Text>
               )}
-            </View>
+            </UsageCard>
             {account.redeem && account.limits.resetCredits ? (
-              <View className="gap-3 rounded-[24px] border-continuous bg-grouped-card p-4">
-                <Text className="text-sm font-t3-medium text-foreground">Reset credits</Text>
+              <UsageCard className="gap-3">
+                <Text className="font-workspace text-sm text-foreground">Reset credits</Text>
                 <ResetCredits
                   key={account.key}
                   environmentId={account.redeem.environmentId}
@@ -626,7 +645,7 @@ export function UsageLimitAccountScreen({ route }: AccountScreenProps) {
                   credits={account.limits.resetCredits}
                   now={now}
                 />
-              </View>
+              </UsageCard>
             ) : null}
           </>
         )}

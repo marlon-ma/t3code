@@ -1,3 +1,4 @@
+import { SpotIllustration } from "../../components/SpotIllustration";
 import { useContentTopInset } from "../../components/ui/useBarInset";
 import { usePaneRole } from "../../components/ui/Pane";
 import { ScreenContent } from "../../components/ui/ScreenContent";
@@ -89,8 +90,9 @@ import {
 } from "./homeThreadList";
 import { buildHomeDeviceSummaries } from "./home-device-summary";
 import { HomeDeviceCards } from "./HomeDeviceCards";
-import { HomeProjectList } from "./HomeProjectList";
 import { SegmentedControl } from "../../components/ui/SegmentedControl";
+import { DeviceIllustration } from "../../components/DeviceIllustration";
+import { HomeProjectList } from "./HomeProjectList";
 import { createSwipeRowActivation } from "./swipe-row-activation";
 import { SwipeableScrollGateProvider, useSwipeableScrollGate } from "./thread-swipe-actions";
 import { useFabScroll } from "./FabScrollContext";
@@ -146,8 +148,8 @@ interface HomeScreenProps {
 }
 
 const HOME_LIST_MODE_OPTIONS = [
-  { value: "chats", label: "Chats" },
-  { value: "projects", label: "Projects" },
+  { value: "activity", label: "All" },
+  { value: "all", label: "Projects" },
 ] as const;
 type HomeListMode = (typeof HOME_LIST_MODE_OPTIONS)[number]["value"];
 
@@ -259,8 +261,8 @@ function renderHomeScrollView(props: ScrollViewProps) {
 export function HomeScreen(props: HomeScreenProps) {
   const usesNativeWorkspaceColumns = useNativeWorkspaceColumnsSupported();
   const workspace = useWorkspaceTabs();
+  const [listMode, setListMode] = useState<HomeListMode>("activity");
   const [initialScrollOffset] = useState(() => workspace?.getScrollOffset("threads") ?? 0);
-  const [listMode, setListMode] = useState<HomeListMode>("chats");
   const primaryColumn = use(NativePrimaryColumnContext);
   const sidebarSurface = usePaneRole() === "sidebar" && primaryColumn !== null;
   const contentBackground = sidebarSurface ? "bg-drawer" : "bg-screen";
@@ -545,6 +547,7 @@ export function HomeScreen(props: HomeScreenProps) {
           }
           environmentMachine={machineByEnvironmentId.get(item.pendingTask.environmentId)}
           showPendingDivider={item.showPendingDivider}
+          startsGroup={item.startsGroup}
           showTrailingDivider={item.showTrailingDivider}
           onSelectPendingTask={props.onSelectPendingTask}
           onDeletePendingTask={props.onDeletePendingTask}
@@ -563,6 +566,7 @@ export function HomeScreen(props: HomeScreenProps) {
           disabled={item.disabled}
           expanded={item.expanded}
           onToggle={toggleWorkingShelf}
+          grouped={!sidebarSurface}
         />
       );
     }
@@ -573,6 +577,7 @@ export function HomeScreen(props: HomeScreenProps) {
           disabled={item.disabled}
           expanded={item.expanded}
           onToggle={toggleSnoozedShelf}
+          grouped={!sidebarSurface}
         />
       );
     }
@@ -583,6 +588,7 @@ export function HomeScreen(props: HomeScreenProps) {
           disabled={item.disabled}
           expanded={item.expanded}
           onToggle={toggleSettledShelf}
+          grouped={!sidebarSurface}
         />
       );
     }
@@ -602,6 +608,7 @@ export function HomeScreen(props: HomeScreenProps) {
         snoozePresetMinute={item.snoozePresetMinute ?? ""}
         snoozeWakeLabelText={item.snoozeWakeLabelText}
         timeLabel={item.timeLabel}
+        startsGroup={item.startsGroup}
         showTrailingDivider={item.showTrailingDivider}
         project={projectByKey.get(scopedProjectKey(thread.environmentId, thread.projectId)) ?? null}
         providerInstance={resolveProviderInstance(thread)}
@@ -711,6 +718,15 @@ export function HomeScreen(props: HomeScreenProps) {
           >
             <View className="w-full max-w-[430px]">
               <EmptyState
+                illustration={
+                  emptyState.loading ? undefined : (
+                    <DeviceIllustration
+                      kind="laptop"
+                      status={props.catalogState.hasReadyEnvironment ? "idle" : "offline"}
+                      width={120}
+                    />
+                  )
+                }
                 title={emptyState.title}
                 detail={emptyState.detail}
                 actionLabel={
@@ -749,7 +765,8 @@ export function HomeScreen(props: HomeScreenProps) {
     threads: props.threads,
     machineByEnvironmentId,
   });
-  const showDeviceCards = devices.length > 1;
+  // One device still gets its card: it is where Home says what that machine is doing.
+  const showDeviceCards = devices.length > 0;
   const listGutter = sidebarSurface ? 8 : 0;
   const homeHeader = (
     <>
@@ -762,15 +779,17 @@ export function HomeScreen(props: HomeScreenProps) {
           onEnvironmentChange={props.onEnvironmentChange}
         />
       ) : null}
-      <View className="px-4 pb-3">
-        <SegmentedControl
-          options={HOME_LIST_MODE_OPTIONS}
-          selected={listMode}
-          onSelect={setListMode}
-          size="compact"
-          role="tab"
-        />
-      </View>
+      {sidebarSurface ? null : (
+        <View className="px-4 pb-3">
+          <SegmentedControl
+            options={HOME_LIST_MODE_OPTIONS}
+            selected={listMode}
+            onSelect={setListMode}
+            size="compact"
+            role="tab"
+          />
+        </View>
+      )}
     </>
   );
   const listContentContainerStyle = {
@@ -783,7 +802,10 @@ export function HomeScreen(props: HomeScreenProps) {
           Math.max(insets.bottom, 16) + (Platform.OS === "android" ? fabClearance : 88)),
   };
 
-  if (listMode === "projects") {
+  // Every thread lives in a project, so both tabs list projects and open threads in place:
+  // "All" is what has activity, newest first; "Projects" is every project in the user's order.
+  // The sidebar column is the thread navigator beside an open thread and keeps the flat list.
+  if (!sidebarSurface) {
     const sections = buildHomeProjectSections({
       scopes: pickableProjectGroups(
         sortHomeProjectScopes({
@@ -795,6 +817,7 @@ export function HomeScreen(props: HomeScreenProps) {
       ),
       threads: props.threads,
       searchQuery: props.searchQuery,
+      order: listMode,
     });
     return (
       <View className={containerClassName}>
@@ -816,10 +839,6 @@ export function HomeScreen(props: HomeScreenProps) {
                 searchQuery={props.searchQuery}
                 onSelectThread={onSelectThread}
                 onNewThreadInProject={props.onNewThreadInProject}
-                onShowAllThreads={(projectKey) => {
-                  props.onProjectChange(projectKey);
-                  setListMode("chats");
-                }}
               />
             </HomeScrollView>
           </View>
@@ -852,24 +871,28 @@ export function HomeScreen(props: HomeScreenProps) {
   const v2ListEmpty =
     hasSearchQuery && threadSearch.isPending ? undefined : hasSearchQuery ? (
       <EmptyState
+        illustration={<SpotIllustration kind="search" />}
         title="No results"
         detail={`No threads matching "${props.searchQuery}".`}
         variant={Platform.OS === "android" ? "plain" : undefined}
       />
     ) : v2ScopedProjectGroup !== null ? (
       <EmptyState
+        illustration={<SpotIllustration kind="threads" />}
         title={`No threads in ${v2ScopedProjectGroup.title}`}
         detail="Choose another project or create a new task."
         variant={Platform.OS === "android" ? "plain" : undefined}
       />
     ) : selectedEnvironmentLabel ? (
       <EmptyState
+        illustration={<SpotIllustration kind="threads" />}
         title={`No threads in ${selectedEnvironmentLabel}`}
         detail="Choose another environment or create a new task."
         variant={Platform.OS === "android" ? "plain" : undefined}
       />
     ) : (
       <EmptyState
+        illustration={<SpotIllustration kind="threads" />}
         title="No threads yet"
         detail="Create a task to start a new coding session."
         variant={Platform.OS === "android" ? "plain" : undefined}
@@ -918,6 +941,7 @@ export function HomeScreen(props: HomeScreenProps) {
                 ListFooterComponent={
                   settledShelfExpanded && threadListV2Layout.hiddenSettledCount > 0 ? (
                     <ThreadListV2ShowMoreRow
+                      grouped={!sidebarSurface}
                       hiddenCount={threadListV2Layout.hiddenSettledCount}
                       {...(olderSettledShelf.loading
                         ? { state: "loading" as const }

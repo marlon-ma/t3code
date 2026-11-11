@@ -1,3 +1,4 @@
+import { SpotIllustration } from "../../components/SpotIllustration";
 import { NativeScrollView } from "../../native/NativeScrollViewMarker";
 import { Button } from "../../components/ui/Button";
 import type {
@@ -16,7 +17,7 @@ import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { AppBar } from "../../components/ui/AppBar";
 import { SymbolView } from "../../components/ui/AppSymbol";
 import { useMemo, useRef, type ComponentProps } from "react";
-import { RefreshControl, useWindowDimensions, View } from "react-native";
+import { Platform, RefreshControl, useWindowDimensions, View } from "react-native";
 import { GestureDetector, useNativeGesture } from "react-native-gesture-handler";
 import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable";
 
@@ -25,6 +26,7 @@ import { EmptyState } from "../../components/ui/EmptyState";
 import { EnvironmentMachineSymbol } from "../../components/EnvironmentMachineSymbol";
 import { ProjectFavicon } from "../../components/ProjectFavicon";
 import { RelativeTime } from "../../components/RelativeTime";
+import { MOBILE_SHAPE } from "../../lib/designTokens";
 import { useUniwindTheme } from "../../lib/useUniwindTheme";
 import { useServerConfigs } from "../../state/entities";
 import { useEnvironmentScope } from "../../state/session";
@@ -134,13 +136,17 @@ type ArchivedThreadListItem =
       readonly thread: EnvironmentThreadShell;
     };
 
+// The list is virtualized, so each row rounds its own corners to form one grouped card.
+const GROUP_RADIUS =
+  Platform.OS === "android" ? MOBILE_SHAPE.group.android : MOBILE_SHAPE.group.ios;
+
 function ProjectGroupLabel(props: {
   readonly environmentLabel: string | null;
   readonly environmentMachine: EnvironmentMachineKind;
   readonly project: EnvironmentProject;
 }) {
   return (
-    <View className="flex-row items-center gap-2.5 px-1 pb-2">
+    <View className="flex-row items-center gap-2 px-2 pb-2">
       <ProjectFavicon
         environmentId={props.project.environmentId}
         faviconPath={props.project.faviconPath}
@@ -150,7 +156,8 @@ function ProjectGroupLabel(props: {
         workspaceRoot={props.project.workspaceRoot}
       />
       <Text
-        className="flex-1 text-xs font-t3-medium tracking-[0.5px] uppercase text-foreground-muted"
+        textRole="footnote"
+        className="flex-1 font-workspace text-foreground-muted"
         numberOfLines={1}
       >
         {props.project.title}
@@ -193,23 +200,26 @@ function ArchivedThreadRow(props: {
   );
   const rowContent = (
     <View
-      className={`flex-row items-center gap-3 bg-grouped-card px-4 py-3 ${props.isLast ? "" : "border-b border-separator"}`}
+      className={`flex-row items-center gap-3 bg-grouped-card px-4 py-3 ${props.isLast ? "" : "border-b border-border-subtle"}`}
     >
-      <View className="h-[34px] w-[34px] items-center justify-center rounded-[11px] bg-subtle">
+      <View
+        className={
+          Platform.OS === "android"
+            ? "h-[34px] w-[34px] items-center justify-center rounded-[11px] bg-subtle"
+            : "h-[34px] w-[34px] items-center justify-center rounded-[10px] border-continuous bg-primary/10"
+        }
+      >
         <SymbolView
           name="archivebox.fill"
           size={15}
-          tintColorClassName="accent-icon-subtle"
+          tintColorClassName={Platform.OS === "android" ? "accent-icon-subtle" : "accent-primary"}
           type="monochrome"
         />
       </View>
 
       <View className="min-w-0 flex-1 gap-1">
         <View className="flex-row items-center gap-2">
-          <Text
-            className="min-w-0 flex-1 text-base font-t3-bold leading-snug text-foreground"
-            numberOfLines={1}
-          >
+          <Text className="min-w-0 flex-1 text-base leading-snug text-foreground" numberOfLines={1}>
             {props.thread.title}
           </Text>
           <Text className="min-w-[30px] text-right text-xs tabular-nums text-foreground-tertiary">
@@ -236,10 +246,10 @@ function ArchivedThreadRow(props: {
     </View>
   );
   const containerStyle = {
-    borderTopLeftRadius: props.isFirst ? 20 : 0,
-    borderTopRightRadius: props.isFirst ? 20 : 0,
-    borderBottomLeftRadius: props.isLast ? 20 : 0,
-    borderBottomRightRadius: props.isLast ? 20 : 0,
+    borderTopLeftRadius: props.isFirst ? GROUP_RADIUS : 0,
+    borderTopRightRadius: props.isFirst ? GROUP_RADIUS : 0,
+    borderBottomLeftRadius: props.isLast ? GROUP_RADIUS : 0,
+    borderBottomRightRadius: props.isLast ? GROUP_RADIUS : 0,
     overflow: "hidden" as const,
   };
   if (!canOperateThread) return <View style={containerStyle}>{rowContent}</View>;
@@ -270,8 +280,11 @@ function ArchivedThreadRow(props: {
 
 function ArchiveError(props: { readonly message: string; readonly onRetry: () => void }) {
   return (
-    <View className="rounded-[20px] border border-danger-border bg-danger p-4">
-      <Text className="text-base font-t3-bold text-danger-foreground">
+    <View
+      className="border border-danger-border border-continuous bg-danger p-4"
+      style={{ borderRadius: GROUP_RADIUS }}
+    >
+      <Text className="font-workspace text-base text-danger-foreground">
         Could not load every archive
       </Text>
       <Text className="mt-1 text-sm text-foreground-muted">{props.message}</Text>
@@ -387,6 +400,7 @@ export function ArchivedThreadsScreen(props: {
 
     return (
       <EmptyState
+        illustration={<SpotIllustration kind={isFiltered ? "search" : "archive"} />}
         detail={
           isFiltered
             ? "Try another search or environment."

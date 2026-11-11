@@ -25,6 +25,7 @@ import { withUniwind } from "uniwind";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { AppText as Text } from "../../components/ui/AppText";
 import { SymbolView } from "../../components/ui/AppSymbol";
+import { StatusDot } from "../../components/ui/StatusDot";
 import { ControlPill } from "../../components/ui/ControlPill";
 import { NATIVE_LIQUID_GLASS_SUPPORTED } from "../../native/native-glass";
 import { BrowserPreviewButton } from "../browser/browser-preview-button";
@@ -453,7 +454,7 @@ function FloatingStatusLabel(props: {
         onLayout={props.onLayout}
         onPress={props.status.onPress}
       >
-        <SymbolView name="text.bubble" size={13} tintColorClassName="accent-foreground" />
+        <StatusDot tone="attention" />
         <Text className="shrink font-t3-medium text-xs text-foreground" numberOfLines={1}>
           {props.status.label}
         </Text>
@@ -473,7 +474,7 @@ function FloatingStatusLabel(props: {
         {props.status.tone === "reconnecting" ? (
           <AppActivityIndicator size="small" colorClassName="accent-icon-muted" />
         ) : (
-          <View className="h-2 w-2 rounded-full bg-red-500" />
+          <StatusDot tone="offline" />
         )}
         <Text
           className="max-w-[260px] shrink font-t3-medium text-xs text-foreground"
@@ -642,7 +643,8 @@ function WorkingDuration(props: {
   readonly onLayout: (event: LayoutChangeEvent) => void;
 }) {
   return (
-    <StatusLabelRow onLayout={props.onLayout}>
+    <StatusLabelRow className="gap-2" onLayout={props.onLayout}>
+      <StatusDot tone="working" />
       <WorkingTimer startedAt={props.startedAt} />
     </StatusLabelRow>
   );

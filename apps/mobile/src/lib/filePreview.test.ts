@@ -60,6 +60,8 @@ const audio = vi.hoisted(() => ({
   navigate: vi.fn(),
   query: vi.fn(),
 }));
+vi.mock("../components/SpotIllustration", () => ({ SpotIllustration: "SpotIllustration" }));
+vi.mock("react-native-svg", () => ({ default: "Svg", Circle: "Circle", Path: "Path" }));
 vi.mock("expo-audio", () => ({
   AudioModule: { setAudioSessionOwner: audio.setSessionOwner },
   useAudioPlayer: () => audio.player,

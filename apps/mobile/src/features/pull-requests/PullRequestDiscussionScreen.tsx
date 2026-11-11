@@ -243,7 +243,7 @@ function Discussion({ params }: { params: PullRequestParams & { readonly discuss
                 }}
                 className={
                   anchor !== null && pullRequestAnchorMatchesUrl(anchor, comment.url)
-                    ? "-mx-3 gap-3 rounded-2xl border border-primary bg-primary/10 px-3 py-4"
+                    ? "-mx-3 gap-3 rounded-2xl bg-primary/12 px-3 py-4"
                     : "gap-3 border-b border-border-subtle py-4"
                 }
               >

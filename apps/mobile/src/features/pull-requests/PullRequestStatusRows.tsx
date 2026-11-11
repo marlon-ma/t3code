@@ -120,6 +120,12 @@ export function PullRequestChecksRow(props: RowProps) {
         icon={checks.icon}
         tint={checks.tint}
         value={checks.count}
+        attention={
+          props.pr.state === "open" &&
+          props.pr.checks.some(
+            (check) => check.status === "failure" || check.status === "action-required",
+          )
+        }
         compact
         accessibilityLabel={`Checks, ${checks.label}`}
         expanded={expanded}
@@ -268,6 +274,7 @@ export function PullRequestReviewersRow(props: RowProps) {
         icon={summary.icon}
         tint={summary.tint}
         value={summary.count}
+        attention={props.pr.state === "open" && summary.title === "Changes requested"}
         compact
         expanded={expanded}
         onPress={() => setExpanded(!expanded)}

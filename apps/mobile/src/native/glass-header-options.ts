@@ -1,3 +1,4 @@
+import { WORKSPACE_FONT_FAMILY } from "../lib/workspaceFont";
 import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { Platform } from "react-native";
 
@@ -17,7 +18,7 @@ export const GLASS_HEADER_OPTIONS: AppScreenOptions = {
   headerShadowVisible: false,
   headerShown: true,
   headerStyle: NATIVE_LIQUID_GLASS_SUPPORTED ? { backgroundColor: "transparent" } : undefined,
-  headerTitleStyle: { fontSize: 18, fontWeight: "800" },
+  headerTitleStyle: { fontFamily: WORKSPACE_FONT_FAMILY, fontSize: 18 },
   headerTransparent: NATIVE_LIQUID_GLASS_SUPPORTED,
   scrollEdgeEffects: NATIVE_LIQUID_GLASS_SUPPORTED
     ? nativeHeaderScrollEdgeEffects(Platform.OS, Platform.Version)
