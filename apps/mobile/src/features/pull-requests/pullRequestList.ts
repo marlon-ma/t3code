@@ -371,8 +371,23 @@ export function pullRequestFilterChoices(input: {
   return rows.slice(0, FILTER_CHOICE_LIMIT);
 }
 
+/** Drops pull requests from repositories the user chose not to see. */
+export function hidePullRequestRepositories<Entry extends Pick<PullRequestListEntry, "repository">>(
+  entries: readonly Entry[],
+  hiddenRepositories: readonly string[],
+): readonly Entry[] {
+  if (hiddenRepositories.length === 0) return entries;
+  const hidden = new Set(hiddenRepositories);
+  const shown = entries.filter((entry) => !hidden.has(entry.repository.toLowerCase()));
+  // The same array when nothing was dropped, so memoized consumers do not recompute.
+  return shown.length === entries.length ? entries : shown;
+}
+
 export function pullRequestListFacets(entries: readonly PullRequestListEntry[]) {
   return {
+    repositories: [...new Set(entries.map((entry) => entry.repository))].sort((a, b) =>
+      a.localeCompare(b),
+    ),
     authors: [
       ...new Set(entries.flatMap((entry) => (entry.author ? [entry.author.login] : []))),
     ].sort((a, b) => a.localeCompare(b)),

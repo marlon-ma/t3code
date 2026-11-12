@@ -123,7 +123,7 @@ export function HomeProjectList(props: {
                 Platform.OS === "android" ? MOBILE_SHAPE.group.android : MOBILE_SHAPE.group.ios,
             }}
           >
-            {group.sections.map((section, index) => {
+            {group.sections.map((section) => {
               const { scope, threads } = section;
               // A search lists its matches open, so results are visible without a tap per project.
               const expanded = searching || expandedKeys.has(scope.key);
@@ -134,11 +134,7 @@ export function HomeProjectList(props: {
               const hiddenCount = threads.length - visibleThreads.length;
               const summary = describeHomeActivity(counts, threadCountLabel(threads.length));
               return (
-                <Animated.View
-                  key={scope.key}
-                  layout={LAYOUT_MAKE_ROOM}
-                  className={cn(index > 0 && "border-t border-border-subtle")}
-                >
+                <Animated.View key={scope.key} layout={LAYOUT_MAKE_ROOM}>
                   <RowPressable
                     accessibilityRole="button"
                     accessibilityLabel={`${scope.title}, ${summary}`}

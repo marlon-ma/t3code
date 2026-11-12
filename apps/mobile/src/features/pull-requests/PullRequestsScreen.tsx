@@ -34,6 +34,7 @@ import { usePullRequestListControls } from "./usePullRequestListControls";
 import { usePullRequestListActions } from "./usePullRequestListActions";
 import {
   filterPullRequestList,
+  hidePullRequestRepositories,
   pullRequestListFacets,
   pullRequestListInput,
   pullRequestListRowsAreEqual,
@@ -123,6 +124,7 @@ export function PullRequestsScreen(
   const typedDraft = parsePullRequestQuery(typedQuery).filters.draft;
   const listControls = usePullRequestListControls();
   const selectedEnvironmentId = listControls.environmentId;
+  const { hiddenRepositories } = listControls;
   const environmentId = environments.some((item) => item.environmentId === selectedEnvironmentId)
     ? selectedEnvironmentId
     : null;
@@ -181,21 +183,23 @@ export function PullRequestsScreen(
   const entries = useMemo(
     () =>
       filterPullRequestList(
-        result.entries,
+        hidePullRequestRepositories(result.entries, hiddenRepositories),
         controls,
         result.data?.viewers ?? {},
         query,
         result.data.localSearchHosts,
         new Set(connectedKey.split("\n")),
       ),
-    [result.entries, controls, query, result.data, connectedKey],
+    [result.entries, hiddenRepositories, controls, query, result.data, connectedKey],
   );
-  const facets = pullRequestListFacets(result.entries);
+  // The render-phase sync below compares `facets` by identity, so it has to be stable per result.
+  const facets = useMemo(() => pullRequestListFacets(result.entries), [result.entries]);
   const [knownFacets, setKnownFacets] = useState({ environmentId, source: facets, ...facets });
   if (knownFacets.environmentId !== environmentId || knownFacets.source !== facets) {
     setKnownFacets((previous) => ({
       source: facets,
       environmentId,
+      repositories: facets.repositories,
       authors: [
         ...new Set([
           ...(previous.environmentId === environmentId ? previous.authors : []),
@@ -248,6 +252,17 @@ export function PullRequestsScreen(
     labels: knownFacets.environmentId === environmentId ? knownFacets.labels : facets.labels,
     labelColors,
     projects,
+    // Hidden repositories have no loaded rows of their own, so list them alongside the loaded ones.
+    repositories: [
+      ...new Set([
+        ...facets.repositories,
+        ...hiddenRepositories.filter(
+          (hidden) => !facets.repositories.some((name) => name.toLowerCase() === hidden),
+        ),
+      ]),
+    ].sort((a, b) => a.localeCompare(b)),
+    hiddenRepositories,
+    onToggleHiddenRepository: listControls.toggleHiddenRepository,
     onSearch: (kind) =>
       navigation.navigate("PullRequestFilterSearch", {
         kind,

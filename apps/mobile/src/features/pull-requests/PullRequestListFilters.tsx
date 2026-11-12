@@ -103,6 +103,11 @@ export function usePullRequestListFilters(props: {
   /** Dot colors by lowercased label name, for the labels that have one. */
   readonly labelColors: Readonly<Record<string, string>>;
   readonly projects: readonly { id: string; title: string; environmentId: string }[];
+  /** Repositories with loaded rows, plus any hidden ones, so a hidden one can be shown again. */
+  readonly repositories: readonly string[];
+  /** Lowercased "owner/name" of each repository the list leaves out. */
+  readonly hiddenRepositories: readonly string[];
+  readonly onToggleHiddenRepository: (repository: string) => void;
   /** Opens a picker that searches the host, for a label or author no loaded row carries. */
   readonly onSearch: (kind: "labels" | "authors") => void;
 }) {
@@ -145,6 +150,9 @@ export function usePullRequestListFilters(props: {
         break;
       case "sort":
         props.onChange({ ...value, sort: next as PullRequestListControls["sort"] });
+        break;
+      case "repository":
+        props.onToggleHiddenRepository(next);
         break;
       case "project": {
         const project = projects.find(
@@ -219,7 +227,8 @@ export function usePullRequestListFilters(props: {
     Number(Boolean(value.filters.draft)) +
     Number(Boolean(value.filters.review)) +
     Number(Boolean(value.filters.checks)) +
-    Number(Boolean(value.projectId));
+    Number(Boolean(value.projectId)) +
+    props.hiddenRepositories.length;
   const more: MenuProps["actions"] = [
     {
       id: "drafts",
@@ -255,6 +264,25 @@ export function usePullRequestListFilters(props: {
         value.projectId ? JSON.stringify([value.projectEnvironmentId, value.projectId]) : "",
       ),
     },
+    ...(props.repositories.length > 0
+      ? [
+          {
+            id: "hidden-repositories",
+            title:
+              props.hiddenRepositories.length > 0
+                ? `Hidden repositories (${props.hiddenRepositories.length})`
+                : "Hide repositories",
+            // A tick marks a repository that is hidden; choosing it again shows it.
+            subactions: props.repositories.map((repository) => ({
+              id: id("repository", repository),
+              title: repository,
+              state: props.hiddenRepositories.includes(repository.toLowerCase())
+                ? ("on" as const)
+                : ("off" as const),
+            })),
+          },
+        ]
+      : []),
     { id: "sort", title: SORTS[value.sort], subactions: choices("sort", SORTS, value.sort) },
   ];
   const reset = (withEnvironment: boolean): MenuProps["actions"][number] => ({

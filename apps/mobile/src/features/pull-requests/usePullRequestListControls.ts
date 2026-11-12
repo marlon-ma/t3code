@@ -4,6 +4,8 @@ import { AsyncResult } from "effect/reactivity";
 import { mobilePreferencesAtom, updateMobilePreferencesAtom } from "../../state/preferences";
 import { DEFAULT_PR_LIST_CONTROLS, type PullRequestListControls } from "./pullRequestList";
 
+const NO_HIDDEN_REPOSITORIES: readonly string[] = [];
+
 export function usePullRequestListControls() {
   const preferences = useAtomValue(mobilePreferencesAtom);
   const savePreferences = useAtomSet(updateMobilePreferencesAtom);
@@ -11,12 +13,14 @@ export function usePullRequestListControls() {
     ? preferences.value.pullRequestListFilters
     : undefined;
   const environmentId = saved?.environmentId ?? null;
+  const hiddenRepositories = saved?.hiddenRepositories ?? NO_HIDDEN_REPOSITORIES;
   const controlsFor = (environment: string | null) =>
     saved?.controls[environment ?? ""] ?? DEFAULT_PR_LIST_CONTROLS;
   const setEnvironmentId = (next: string | null) =>
     savePreferences({
       transform: (current) => ({
         pullRequestListFilters: {
+          ...current.pullRequestListFilters,
           controls: current.pullRequestListFilters?.controls ?? {},
           environmentId: next,
         },
@@ -26,6 +30,7 @@ export function usePullRequestListControls() {
     savePreferences({
       transform: (current) => ({
         pullRequestListFilters: {
+          ...current.pullRequestListFilters,
           environmentId: current.pullRequestListFilters?.environmentId ?? null,
           controls: withEnvironmentControls(
             current.pullRequestListFilters?.controls,
@@ -35,7 +40,30 @@ export function usePullRequestListControls() {
         },
       }),
     });
-  return { environmentId, controlsFor, setEnvironmentId, setControls } as const;
+  const toggleHiddenRepository = (repository: string) =>
+    savePreferences({
+      transform: (current) => {
+        const key = repository.toLowerCase();
+        const hidden = current.pullRequestListFilters?.hiddenRepositories ?? [];
+        return {
+          pullRequestListFilters: {
+            environmentId: current.pullRequestListFilters?.environmentId ?? null,
+            controls: current.pullRequestListFilters?.controls ?? {},
+            hiddenRepositories: hidden.includes(key)
+              ? hidden.filter((item) => item !== key)
+              : [...hidden, key],
+          },
+        };
+      },
+    });
+  return {
+    environmentId,
+    controlsFor,
+    setEnvironmentId,
+    setControls,
+    hiddenRepositories,
+    toggleHiddenRepository,
+  } as const;
 }
 
 function withEnvironmentControls(

@@ -47,6 +47,8 @@ export type ThreadListFilters = typeof ThreadListFilters.Type;
 const PullRequestListPreferences = Schema.Struct({
   environmentId: Schema.NullOr(Schema.String),
   controls: Schema.Record(Schema.String, PullRequestListControls),
+  /** Repositories ("owner/name", lowercased) the list leaves out whatever else is selected. */
+  hiddenRepositories: Schema.optional(Schema.Array(Schema.String)),
 });
 export type PullRequestListPreferences = typeof PullRequestListPreferences.Type;
 

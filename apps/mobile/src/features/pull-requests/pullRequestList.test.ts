@@ -11,6 +11,7 @@ import {
   DEFAULT_PR_LIST_CONTROLS,
   EMPTY_PULL_REQUEST_STATS_CACHE,
   filterPullRequestList,
+  hidePullRequestRepositories,
   mergePullRequestListEntries,
   mergeEnvironmentPullRequestPages,
   nextPullRequestListInput,
@@ -177,6 +178,14 @@ describe("all-environment PR list", () => {
       [1, cups],
     ]);
     expect(scopedPullRequestListKey(rows[1]!)).toBe("mbp:github.com:org/repo:2");
+    // A hidden repository's rows go, whatever case the host reports its name in.
+    expect(hidePullRequestRepositories(merged.entries, ["someone/else"])).toBe(merged.entries);
+    expect(
+      hidePullRequestRepositories(
+        merged.entries.map((row) => ({ ...row, repository: "Org/Repo" })),
+        ["org/repo"],
+      ),
+    ).toEqual([]);
     expect(nextPullRequestListInput(first, { state: "open" })?.cursors).toEqual({
       repo: "cups-next",
     });
