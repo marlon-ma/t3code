@@ -42,6 +42,14 @@ const observeEndpointUrl = cloudEnv.T3CODE_RELAY_URL?.trim()
   ? new URL("/v1/mobile/observe", cloudEnv.T3CODE_RELAY_URL.trim()).toString()
   : "https://observe.invalid";
 
+// BuddyLaunch takes over from this exact frame: the face at imageWidth 220 on the default
+// theme's screen colour.
+const buddySplash = {
+  image: "./assets/buddy/splash.png",
+  backgroundColor: "#fcfcfc",
+  dark: { image: "./assets/buddy/splash-dark.png", backgroundColor: "#0a0a0a" },
+} as const;
+
 const fromRepoRoot = (relativePath: string) => `../../${relativePath}`;
 const androidAdaptiveForeground = "./assets/android-icon-foreground.png";
 
@@ -279,7 +287,7 @@ const config: ExpoConfig = {
         fallbackToCacheTimeout: 0,
       },
   ios: {
-    icon: isWorkspaceTestFlightBuild ? workspaceIos.icon : variant.assets.iosIcon,
+    icon: workspaceIos.icon,
     supportsTablet: true,
     requireFullScreen: process.env.T3_SHOWCASE_CAPTURE_BUILD === "1",
     bundleIdentifier: iosBundleIdentifier,
@@ -447,14 +455,12 @@ const config: ExpoConfig = {
     [
       "expo-splash-screen",
       {
-        image: isWorkspaceTestFlightBuild ? workspaceIos.icon : variant.assets.splashIcon,
+        image: variant.assets.splashIcon,
         resizeMode: "contain",
         backgroundColor: "#ffffff",
         imageWidth: 220,
-        dark: {
-          image: isWorkspaceTestFlightBuild ? workspaceIos.icon : variant.assets.splashIcon,
-          backgroundColor: "#0a0a0a",
-        },
+        dark: { image: variant.assets.splashIcon, backgroundColor: "#0a0a0a" },
+        ios: buddySplash,
         android: {
           // Android 12+ masks the central two thirds of the 288dp canvas; adaptive layers avoid clipped corners.
           image: variant.assets.androidSplashIcon,

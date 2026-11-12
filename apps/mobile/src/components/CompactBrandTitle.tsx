@@ -1,10 +1,13 @@
 import { NATIVE_WORKSPACE_COLUMNS_SUPPORTED } from "../native/NativeWorkspaceColumns";
+import { useAtomValue } from "@effect/atom-react";
 import Constants from "expo-constants";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ComponentRef, type ReactNode } from "react";
 import { Animated, Platform, View } from "react-native";
 
 import { AppText as Text } from "./ui/AppText";
 import { BuddyFace } from "../features/buddy/BuddyFace";
+import { buddyLaunchAnchorAtom, buddyLaunchLandedAtom } from "../features/buddy/buddyLaunchState";
+import { appAtomRegistry } from "../state/atom-registry";
 import { IPAD_HOME_TITLE_OFFSET } from "../lib/layoutMetrics";
 import { resolveMobileStageLabel } from "../lib/mobileBranding";
 import { useAndroidControlSizing } from "./ui/useAndroidControlSizing";
@@ -32,6 +35,7 @@ export function CompactBrandTitle(
   const [availableWidth, setAvailableWidth] = useState<number | null>(null);
   // Measured only while the badge shows, so hiding it does not make it look like it fits.
   const [fullWidth, setFullWidth] = useState<number | null>(null);
+  const landed = useAtomValue(buddyLaunchLandedAtom);
   const label = props.label ?? "Buddy";
   const showStage =
     label === "Buddy" &&
@@ -53,7 +57,14 @@ export function CompactBrandTitle(
         props.fit && { flexShrink: 0 },
       ]}
     >
-      <BuddyFace size={Math.round(24 * scale)} />
+      {/* Hidden until the launch face lands here, so the two never show together. */}
+      <View
+        ref={landed ? undefined : setLaunchAnchor}
+        collapsable={false}
+        style={landed ? undefined : { opacity: 0 }}
+      >
+        <BuddyFace size={Math.round(24 * scale)} />
+      </View>
       {/* A logo beside a fixed-size wordmark: it may grow with Dynamic Type, not crowd the bar. */}
       <WordFadeIn key={label}>
         <Text
@@ -97,6 +108,10 @@ export function CompactBrandTitle(
   ) : (
     title
   );
+}
+
+function setLaunchAnchor(view: ComponentRef<typeof View> | null) {
+  if (view) appAtomRegistry.set(buddyLaunchAnchorAtom, view);
 }
 
 /** Native-driver animation blanks views re-hosted in the native header; use the JS style path. */

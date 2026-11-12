@@ -47,6 +47,7 @@ import {
   installAppearanceRuntime,
   useAppearancePreferences,
 } from "./features/settings/appearance/AppearancePreferencesProvider";
+import { BuddyLaunch } from "./features/buddy/BuddyLaunch";
 import { RootStack, rootPathnameFromState, workspaceLocationFromState } from "./Stack";
 import { appAtomRegistry } from "./state/atom-registry";
 import { subscribeComposerDraftModelReconciliation } from "./state/use-composer-drafts";
@@ -214,7 +215,8 @@ function SplashScreenCoordinator() {
     if (isReady) void SplashScreen.hide();
   }, [isReady]);
 
-  return null;
+  // Rendered last so the launch face covers the app until it lands in the header.
+  return <BuddyLaunch ready={isReady} />;
 }
 
 export default function App() {
@@ -243,7 +245,6 @@ function AppContent() {
 
   return (
     <>
-      <SplashScreenCoordinator />
       <SubscriptionUsageCoordinator />
       <GestureHandlerRootView className="flex-1">
         <KeyboardProvider statusBarTranslucent>
@@ -268,6 +269,7 @@ function AppContent() {
           </SafeAreaProvider>
         </KeyboardProvider>
       </GestureHandlerRootView>
+      <SplashScreenCoordinator />
     </>
   );
 }

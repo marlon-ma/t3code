@@ -150,7 +150,7 @@ function parseColor(value: unknown, fallback: readonly [number, number, number])
 }
 
 /** Grok-style: a ball in the text colour with eyes in the background colour. */
-function useBuddyTheme(): BuddyTheme {
+export function useBuddyTheme(): BuddyTheme {
   const body = StyleSheet.flatten(useResolveClassNames("text-foreground"))?.color;
   const eye = StyleSheet.flatten(useResolveClassNames("bg-screen"))?.backgroundColor;
   const muted = StyleSheet.flatten(useResolveClassNames("text-foreground-muted"))?.color;
