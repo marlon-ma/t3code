@@ -16,7 +16,8 @@ const isWorkspaceTestFlightBuild = repoEnv.T3CODE_WORKSPACE_TESTFLIGHT === "1";
 const usesBasicIosCapabilities = isIosPersonalTeamBuild || isWorkspaceTestFlightBuild;
 const cloudEnv: typeof repoEnv = isWorkspaceTestFlightBuild ? {} : repoEnv;
 const workspaceIos = {
-  name: "Marlon Workspace",
+  name: "Buddy",
+  icon: "./assets/buddy/icon.png",
   bundleIdentifier: "com.marlonma.workspace",
   teamId: "5YSTG24LJP",
   scheme: "marlon-workspace",
@@ -261,7 +262,7 @@ const config: ExpoConfig = {
     policy: runtimeVersionPolicy,
   },
   orientation: "portrait",
-  icon: variant.assets.appIcon,
+  icon: isWorkspaceTestFlightBuild ? workspaceIos.icon : variant.assets.appIcon,
   userInterfaceStyle: "automatic",
   updates: isWorkspaceTestFlightBuild
     ? {
@@ -278,7 +279,7 @@ const config: ExpoConfig = {
         fallbackToCacheTimeout: 0,
       },
   ios: {
-    icon: variant.assets.iosIcon,
+    icon: isWorkspaceTestFlightBuild ? workspaceIos.icon : variant.assets.iosIcon,
     supportsTablet: true,
     requireFullScreen: process.env.T3_SHOWCASE_CAPTURE_BUILD === "1",
     bundleIdentifier: iosBundleIdentifier,
@@ -446,12 +447,12 @@ const config: ExpoConfig = {
     [
       "expo-splash-screen",
       {
-        image: variant.assets.splashIcon,
+        image: isWorkspaceTestFlightBuild ? workspaceIos.icon : variant.assets.splashIcon,
         resizeMode: "contain",
         backgroundColor: "#ffffff",
         imageWidth: 220,
         dark: {
-          image: variant.assets.splashIcon,
+          image: isWorkspaceTestFlightBuild ? workspaceIos.icon : variant.assets.splashIcon,
           backgroundColor: "#0a0a0a",
         },
         android: {

@@ -10,7 +10,7 @@ import {
   buildHomeProjectSections,
   findHomeProjectScope,
 } from "./homeThreadList";
-import { buildHomeDeviceSummaries } from "./home-device-summary";
+import { buildHomeDeviceSummaries, homeThreadDoneUntilMs } from "./home-device-summary";
 import { makeThreadShellFixture } from "../../test-fixtures";
 import { buildThreadListV2Items } from "../threads/threadListV2";
 
@@ -276,6 +276,23 @@ describe("home project scopes", () => {
         order: "activity",
       }).map((section) => section.scope.title),
     ).toEqual(["Docs", "App"]);
+    // A project without threads yet still lists, after every project with activity.
+    const withEmpty = buildHomeProjectScopes({
+      projects: [
+        makeProject({ environmentId, id: ProjectId.make("new"), title: "New" }),
+        ...projects,
+      ],
+      environmentId: null,
+      projectGroupingMode: "separate",
+    });
+    expect(
+      buildHomeProjectSections({
+        scopes: withEmpty,
+        threads,
+        searchQuery: "",
+        order: "activity",
+      }).map((section) => section.scope.title),
+    ).toEqual(["App", "Docs", "New"]);
   });
 
   it("summarises each device by what needs the user first, then by running work", () => {
@@ -325,5 +342,46 @@ describe("home project scopes", () => {
     );
     expect(summaries[0]!.machineKind).toBe("laptop");
     expect(summaries[1]!.machineKind).toBeNull();
+  });
+});
+
+describe("homeThreadDoneUntilMs", () => {
+  const thread = (input: Partial<EnvironmentThreadShell>) =>
+    makeThread({
+      environmentId: EnvironmentId.make("env"),
+      id: ThreadId.make("t"),
+      projectId: ProjectId.make("p"),
+      title: "t",
+      ...input,
+    });
+  const run = (status: "completed" | "failed", completedAt: string | null) =>
+    ({
+      runId: "run-1",
+      status,
+      requestedAt: null,
+      startedAt: null,
+      completedAt,
+      assistantMessageId: null,
+    }) as EnvironmentThreadShell["latestRun"];
+
+  it("highlights a completed run for ten minutes after it finishes", () => {
+    expect(
+      homeThreadDoneUntilMs(thread({ latestRun: run("completed", "2026-06-01T00:00:00.000Z") })),
+    ).toBe(Date.parse("2026-06-01T00:10:00.000Z"));
+  });
+
+  it("skips failed runs, unfinished runs, and threads that need the user", () => {
+    expect(
+      homeThreadDoneUntilMs(thread({ latestRun: run("failed", "2026-06-01T00:00:00.000Z") })),
+    ).toBeNull();
+    expect(homeThreadDoneUntilMs(thread({ latestRun: run("completed", null) }))).toBeNull();
+    expect(
+      homeThreadDoneUntilMs(
+        thread({
+          latestRun: run("completed", "2026-06-01T00:00:00.000Z"),
+          hasPendingApprovals: true,
+        }),
+      ),
+    ).toBeNull();
   });
 });

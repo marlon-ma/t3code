@@ -1,6 +1,5 @@
 import { isScratchProject } from "@t3tools/client-runtime/state/projects";
 import { ProjectIconColor, type ProjectIconOverride } from "@t3tools/contracts";
-import { isProjectFaviconFallbackUrl } from "@t3tools/shared/projectFavicon";
 import type { AppSymbolName } from "../components/ui/AppSymbol";
 
 export type ProjectIconGlyph =
@@ -76,8 +75,6 @@ export function resolveProjectIconSymbol(
   return name ? { name, color: projectIcon.color } : null;
 }
 
-export type ProjectChipIcon = { readonly kind: "favicon"; readonly uri: string } | ProjectIconGlyph;
-
 export function resolveProjectChipIcon(
   project: {
     readonly title: string;
@@ -85,14 +82,12 @@ export function resolveProjectChipIcon(
     readonly projectIcon?: ProjectIconOverride | null;
   } | null,
   scratchWorkspaceRoot: string | null | undefined,
-  faviconUrl: () => string | null,
-): ProjectChipIcon | null {
+): ProjectIconGlyph | null {
   if (!project || isScratchProject(project, scratchWorkspaceRoot)) return null;
-  const glyph = resolveProjectIconGlyph(project.projectIcon, project.title);
-  if (glyph) return glyph;
-  const url = faviconUrl();
-  if (url && !isProjectFaviconFallbackUrl(url)) return { kind: "favicon", uri: url };
-  return projectAutoMonogram(project.title);
+  return (
+    resolveProjectIconGlyph(project.projectIcon, project.title) ??
+    projectAutoMonogram(project.title)
+  );
 }
 
 const PROJECT_ICON_COLOR_CLASSES: Record<

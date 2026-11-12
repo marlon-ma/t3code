@@ -44,6 +44,8 @@ const TAB_TITLES = WORKSPACE_TAB_LABELS;
 function WorkspaceRootTitle(props: {
   readonly columnWidth: number;
   readonly onOpenEnvironments: () => void;
+  /** Beside a detail column the tab bar names the tab, so the title stays the brand. */
+  readonly brandOnly: boolean;
 }) {
   const { state, settingsOpen } = useWorkspaceTabs()!;
   const maxWidth = Math.max(0, props.columnWidth - (use(HeaderItemsWidthContext) ?? 160));
@@ -56,7 +58,17 @@ function WorkspaceRootTitle(props: {
   return (
     <View style={{ width: maxWidth, minHeight: 32, justifyContent: "center" }}>
       <WorkspaceConnectionTitle
-        brand={<CompactBrandTitle accessibilityLabel={`T3 Code, ${tabTitle}`} fit />}
+        brand={
+          <CompactBrandTitle
+            accessibilityLabel={`Buddy, ${tabTitle}`}
+            label={
+              !props.brandOnly && (settingsOpen || state.selectedTab === "usage")
+                ? tabTitle
+                : undefined
+            }
+            fit
+          />
+        }
         maxWidth={maxWidth}
         onPress={props.onOpenEnvironments}
       />
@@ -92,6 +104,7 @@ function WorkspaceRootContent() {
   const renderHeaderTitle = () => (
     <WorkspaceRootTitle
       columnWidth={width}
+      brandOnly={sidebarNavigation}
       onOpenEnvironments={() => openSettings(navigation, "SettingsEnvironments")}
     />
   );
@@ -140,12 +153,8 @@ function WorkspaceRootContent() {
               ? { headerSearchBarOptions: undefined, unstable_headerRightItems: () => [] }
               : {}),
             unstable_headerLeftItems: () => [],
-            // Beside a detail column the tab bar names the tab and the detail header the page,
-            // so the sidebar keeps the brand.
-            headerTitle:
-              sidebarNavigation || (!settingsOpen && state.selectedTab !== "usage")
-                ? renderHeaderTitle
-                : undefined,
+            // Every tab keeps the same title view so the logo holds still between tabs.
+            headerTitle: renderHeaderTitle,
           }}
         />
         <SafeAreaInsetsContext value={compactTabs ? { ...insets, bottom: 0 } : insets}>

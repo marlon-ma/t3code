@@ -95,12 +95,40 @@ export function SettingsProjectOverviewRouteScreen() {
         contentContainerClassName="gap-6 px-5 pt-4"
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
       >
-        {selectedProjectKey === null ? (
+        {selectedProjectKey === null && projectGroups.length > 0 ? (
+          // Picking a project here beats hunting for it in the filter menu.
+          <SettingsSection title="Choose a project">
+            {projectGroups.map((entry) => (
+              <SettingsActionRow
+                key={entry.key}
+                leading={
+                  <ProjectFavicon
+                    environmentId={entry.representative.environmentId}
+                    projectTitle={entry.representative.title}
+                    workspaceRoot={entry.representative.workspaceRoot}
+                    faviconPath={entry.representative.faviconPath}
+                    projectIcon={entry.representative.projectIcon}
+                    size={28}
+                  />
+                }
+                label={entry.label}
+                description={
+                  entry.archived
+                    ? "Archived"
+                    : entry.members.length > 1
+                      ? `${entry.members.length} checkouts`
+                      : undefined
+                }
+                onPress={() => selectProject(entry.key)}
+              />
+            ))}
+          </SettingsSection>
+        ) : selectedProjectKey === null ? (
           <EmptyState
             variant="plain"
             illustration={<SpotIllustration kind="project" />}
-            title="No project selected"
-            detail="Choose a project with the filter above to manage its name, checkouts and removal."
+            title="No projects yet"
+            detail="Add a project from Home to manage its name, checkouts and removal here."
           />
         ) : !group || members.length === 0 ? (
           <EmptyState

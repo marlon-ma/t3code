@@ -88,6 +88,7 @@ import {
   findHomeProjectScope,
   sortHomeProjectScopes,
   type HomeProjectSortOrder,
+  type HomeProjectScope,
 } from "./homeThreadList";
 import { buildHomeDeviceSummaries } from "./home-device-summary";
 import { HomeDeviceCards } from "./HomeDeviceCards";
@@ -146,6 +147,8 @@ interface HomeScreenProps {
   readonly onDeletePendingTask: (pendingTask: PendingNewTask) => void;
   readonly onNewThreadOnBranch: (thread: EnvironmentThreadShell) => void;
   readonly onNewThreadInProject: (project: EnvironmentProject) => void;
+  readonly onAddProject?: () => void;
+  readonly onRenameProject?: (scope: HomeProjectScope) => void;
 }
 
 const HOME_LIST_MODE_OPTIONS = [
@@ -769,6 +772,8 @@ export function HomeScreen(props: HomeScreenProps) {
   // One device still gets its card: it is where Home says what that machine is doing.
   const showDeviceCards = devices.length > 0;
   const listGutter = sidebarSurface ? 8 : 0;
+  // "All" spans every device; "Projects" is the selected device's projects.
+  const showsEveryDevice = !sidebarSurface && listMode === "activity";
   const homeHeader = (
     <>
       {Platform.OS === "ios" ? null : <HomeTopContentSpacer />}
@@ -776,8 +781,12 @@ export function HomeScreen(props: HomeScreenProps) {
         <HomeDeviceCards
           gutter={listGutter}
           devices={devices}
-          selectedEnvironmentId={props.selectedEnvironmentId}
-          onEnvironmentChange={props.onEnvironmentChange}
+          selectedEnvironmentId={showsEveryDevice ? null : props.selectedEnvironmentId}
+          onEnvironmentChange={(environmentId) => {
+            // Picking a device from "All" narrows Home to that device's projects.
+            if (showsEveryDevice && environmentId !== null) setListMode("all");
+            props.onEnvironmentChange(environmentId);
+          }}
         />
       ) : null}
       {sidebarSurface ? null : (
@@ -804,13 +813,19 @@ export function HomeScreen(props: HomeScreenProps) {
   };
 
   // Every thread lives in a project, so both tabs list projects and open threads in place:
-  // "All" is what has activity, newest first; "Projects" is every project in the user's order.
+  // "All" is every device's projects by activity; "Projects" is the selected device's, in order.
   // The sidebar column is the thread navigator beside an open thread and keeps the flat list.
   if (!sidebarSurface) {
     const sections = buildHomeProjectSections({
       scopes: pickableProjectGroups(
         sortHomeProjectScopes({
-          scopes: projectScopes,
+          scopes: showsEveryDevice
+            ? buildHomeProjectScopes({
+                projects,
+                environmentId: null,
+                projectGroupingMode,
+              })
+            : projectScopes,
           threads: props.threads,
           pendingTasks: props.pendingTasks,
           projectSortOrder: props.projectSortOrder,
@@ -847,6 +862,8 @@ export function HomeScreen(props: HomeScreenProps) {
                   searchQuery={props.searchQuery}
                   onSelectThread={onSelectThread}
                   onNewThreadInProject={props.onNewThreadInProject}
+                  {...(props.onAddProject ? { onAddProject: props.onAddProject } : {})}
+                  {...(props.onRenameProject ? { onRenameProject: props.onRenameProject } : {})}
                 />
               </Animated.View>
             </HomeScrollView>

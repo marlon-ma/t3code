@@ -9,7 +9,7 @@ import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { LegendList, type LegendListRef } from "@legendapp/list/react-native";
 import { useNavigation } from "@react-navigation/native";
 import { use, useMemo, useRef, useState, type ReactNode } from "react";
-import { useAtomValue } from "@effect/atom-react";
+import { useAtom, useAtomValue } from "@effect/atom-react";
 import { Keyboard, Platform, Pressable, RefreshControl, View } from "react-native";
 import { NativeScrollView } from "../../native/NativeScrollViewMarker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -23,6 +23,9 @@ import { useNativeColumnLayoutMetrics } from "../../native/native-layout-metrics
 import { useWorkspaceState } from "../../state/workspace";
 import { useProjects } from "../../state/entities";
 import { environmentServerConfigsAtom } from "../../state/server";
+import { SegmentedControl } from "../../components/ui/SegmentedControl";
+import { TrendingScreen } from "../trending/TrendingScreen";
+import { pullRequestsTabFeedAtom } from "../trending/trendingAtoms";
 import { PullRequestListRow } from "./PullRequestListRow";
 import {
   PullRequestListFilters,
@@ -83,17 +86,45 @@ function PullRequestListError(props: { readonly message: string }) {
   );
 }
 
-export function PullRequestsScreen(
-  props: {
-    readonly sidebar?: boolean;
-    readonly selectedPullRequestKey?: string | null;
-    /**
-     * Places the list under a header that opens the full filter menu (the Android toolbar). The
-     * filters live here, so the header gets them in the same render as the list.
-     */
-    readonly renderFrame?: (filters: PullRequestFilterMenu | null, list: ReactNode) => ReactNode;
-  } = {},
-) {
+type PullRequestsScreenProps = {
+  readonly sidebar?: boolean;
+  readonly selectedPullRequestKey?: string | null;
+  /**
+   * Places the list under a header that opens the full filter menu (the Android toolbar). The
+   * filters live here, so the header gets them in the same render as the list.
+   */
+  readonly renderFrame?: (filters: PullRequestFilterMenu | null, list: ReactNode) => ReactNode;
+};
+
+const FEED_OPTIONS = [
+  { value: "pullRequests", label: "Pull requests" },
+  { value: "trending", label: "Trending" },
+] as const;
+
+export function PullRequestsScreen(props: PullRequestsScreenProps = {}) {
+  const [feed, setFeed] = useAtom(pullRequestsTabFeedAtom);
+  const header = (
+    <View className="px-4 pb-3">
+      <SegmentedControl
+        options={FEED_OPTIONS}
+        selected={feed}
+        onSelect={setFeed}
+        size="compact"
+        role="tab"
+      />
+    </View>
+  );
+  return feed === "trending" ? (
+    <TrendingScreen
+      header={header}
+      renderFrame={props.renderFrame ? (list) => props.renderFrame!(null, list) : undefined}
+    />
+  ) : (
+    <PullRequestListScreen {...props} header={header} />
+  );
+}
+
+function PullRequestListScreen(props: PullRequestsScreenProps & { readonly header: ReactNode }) {
   const navigation = useNavigation();
   const primaryColumn = use(NativePrimaryColumnContext);
   const workspace = useWorkspaceTabs()!;
@@ -343,6 +374,7 @@ export function PullRequestsScreen(
         ListHeaderComponentStyle={{ zIndex: 1 }}
         ListHeaderComponent={
           <>
+            {props.header}
             <PullRequestListFilters sidebar={sidebar} filters={filters} />
             {result.data?.errors.length ? (
               <View key={JSON.stringify(targets)}>

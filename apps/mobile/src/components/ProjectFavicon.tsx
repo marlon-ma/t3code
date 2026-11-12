@@ -1,17 +1,8 @@
 import { SymbolView } from "./ui/AppSymbol";
 import { AppText } from "./ui/AppText";
-import { Image } from "expo-image";
-import { memo, useLayoutEffect, useState } from "react";
+import { memo } from "react";
 import { View } from "react-native";
 import type { EnvironmentId, ProjectIconOverride } from "@t3tools/contracts";
-import {
-  getProjectFaviconCacheKey,
-  getProjectFaviconResourceKey,
-  isProjectFaviconFallbackUrl,
-} from "@t3tools/shared/projectFavicon";
-import { useAtomValue } from "@effect/atom-react";
-import { Atom } from "effect/reactivity";
-import { projectFaviconUrlAtom } from "../state/assets";
 import {
   countGlyphs,
   projectAutoMonogram,
@@ -21,16 +12,7 @@ import {
   type ProjectIconGlyph,
 } from "../lib/projectIcon";
 
-import {
-  beginProjectFaviconRequest,
-  createProjectFaviconRequest,
-  hasLoadedProjectFavicon,
-  markProjectFaviconFailed,
-  markProjectFaviconLoaded,
-} from "../lib/projectFaviconRequests";
-
-const EMPTY_FAVICON_URL = Atom.make<string | null>(null);
-
+// Projects always show a letter mark (or the user's own icon), never the repo favicon.
 export const ProjectFavicon = memo(function ProjectFavicon(props: {
   readonly environmentId: EnvironmentId;
   readonly open?: boolean;
@@ -42,25 +24,6 @@ export const ProjectFavicon = memo(function ProjectFavicon(props: {
 }) {
   const size = props.size ?? 42;
   const symbol = resolveProjectIconSymbol(props.projectIcon);
-  const glyph = resolveProjectIconGlyph(props.projectIcon, props.projectTitle);
-  const faviconUrl = useAtomValue(
-    props.workspaceRoot == null || glyph !== null
-      ? EMPTY_FAVICON_URL
-      : projectFaviconUrlAtom({
-          environmentId: props.environmentId,
-          cwd: props.workspaceRoot,
-          faviconPath: props.faviconPath,
-        }),
-  );
-  const renderableFaviconUrl = isProjectFaviconFallbackUrl(faviconUrl) ? null : faviconUrl;
-  // Key remote images by revision so token rotation reuses the cache while changed icons reload.
-  const cacheKey =
-    renderableFaviconUrl && props.workspaceRoot
-      ? renderableFaviconUrl.startsWith("data:")
-        ? getProjectFaviconResourceKey(props.environmentId, props.workspaceRoot, props.faviconPath)
-        : getProjectFaviconCacheKey(props.environmentId, props.workspaceRoot, renderableFaviconUrl)
-      : null;
-
   if (symbol !== null) {
     return (
       <SymbolView
@@ -72,18 +35,19 @@ export const ProjectFavicon = memo(function ProjectFavicon(props: {
     );
   }
 
+  const glyph =
+    resolveProjectIconGlyph(props.projectIcon, props.projectTitle) ??
+    projectAutoMonogram(props.projectTitle);
   if (glyph !== null) {
     return <ProjectIconGlyphView glyph={glyph} size={size} />;
   }
 
   return (
-    <ProjectFaviconImage
-      key={cacheKey}
-      cacheKey={cacheKey}
-      faviconUrl={renderableFaviconUrl}
-      open={props.open}
-      projectTitle={props.projectTitle}
+    <SymbolView
+      name={{ ios: "folder.fill", android: props.open ? "folder_open" : "folder" }}
       size={size}
+      tintColorClassName={"accent-icon-subtle"}
+      type="monochrome"
     />
   );
 });
@@ -134,83 +98,6 @@ function ProjectIconGlyphView(props: { readonly glyph: ProjectIconGlyph; readonl
       >
         {glyph.text}
       </AppText>
-    </View>
-  );
-}
-
-function ProjectFaviconImage(props: {
-  readonly cacheKey: string | null;
-  readonly faviconUrl: string | null;
-  readonly open?: boolean;
-  readonly projectTitle: string;
-  readonly size: number;
-}) {
-  const faviconRequest = createProjectFaviconRequest(props.cacheKey, props.faviconUrl);
-  // Registers with the module-level loader before the Image's native onLoad/onError can fire,
-  // so stale loads for a superseded URL under the same cacheKey are ignored.
-  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- marks this favicon URL as the current request in the module registry before the native Image reports load or error
-  useLayoutEffect(() => {
-    if (faviconRequest === null) return;
-    return beginProjectFaviconRequest(faviconRequest);
-  }, [faviconRequest]);
-
-  const [status, setStatus] = useState<"loading" | "loaded" | "error">(() =>
-    props.faviconUrl?.startsWith("data:") || hasLoadedProjectFavicon(props.cacheKey)
-      ? "loaded"
-      : "loading",
-  );
-
-  const showImage = faviconRequest !== null && status === "loaded";
-  const fallbackGlyph = showImage ? null : projectAutoMonogram(props.projectTitle);
-
-  return (
-    <View
-      style={{
-        width: props.size,
-        height: props.size,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      {showImage ? null : fallbackGlyph ? (
-        <ProjectIconGlyphView glyph={fallbackGlyph} size={props.size} />
-      ) : (
-        <SymbolView
-          name={{ ios: "folder.fill", android: props.open ? "folder_open" : "folder" }}
-          size={props.size}
-          tintColorClassName={"accent-icon-subtle"}
-          type="monochrome"
-        />
-      )}
-
-      {faviconRequest !== null ? (
-        <Image
-          key={faviconRequest.faviconUrl}
-          source={
-            faviconRequest.faviconUrl.startsWith("data:")
-              ? { uri: faviconRequest.faviconUrl }
-              : { uri: faviconRequest.faviconUrl, cacheKey: faviconRequest.cacheKey }
-          }
-          cachePolicy={faviconRequest.faviconUrl.startsWith("data:") ? "memory" : "memory-disk"}
-          recyclingKey={faviconRequest.cacheKey}
-          accessibilityLabel={`${props.projectTitle} favicon`}
-          style={{
-            width: props.size,
-            height: props.size,
-            borderRadius: props.size * 0.16,
-            ...(showImage ? {} : { position: "absolute" as const, opacity: 0 }),
-          }}
-          contentFit="contain"
-          onLoad={() => {
-            if (!markProjectFaviconLoaded(faviconRequest)) return;
-            setStatus("loaded");
-          }}
-          onError={() => {
-            if (!markProjectFaviconFailed(faviconRequest)) return;
-            setStatus("error");
-          }}
-        />
-      ) : null}
     </View>
   );
 }

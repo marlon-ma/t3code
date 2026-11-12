@@ -31,7 +31,6 @@ import { AsyncResult, Atom } from "effect/reactivity";
 import { threadChipTargets } from "../lib/enrichedLinkPresentation";
 import { resolveProjectChipIcon } from "../lib/projectIcon";
 import { projectGlyphImageAtom, projectGlyphKey } from "../native/ProjectChipIconImages";
-import { projectFaviconUrlAtom } from "./assets";
 import { orchestrationEnvironment } from "./orchestration";
 import { environmentProjects } from "./projects";
 import { environmentServerConfigsAtom, serverEnvironment } from "./server";
@@ -125,19 +124,8 @@ const threadProjectChipIconAtom = Atom.family((key: string) => {
     const icon = resolveProjectChipIcon(
       project,
       get(serverEnvironment.configValueAtom(ref.environmentId))?.scratchWorkspaceRoot,
-      () =>
-        project
-          ? get(
-              projectFaviconUrlAtom({
-                environmentId: ref.environmentId,
-                cwd: project.workspaceRoot,
-                faviconPath: project.faviconPath,
-              }),
-            )
-          : null,
     );
     if (!icon) return null;
-    if (icon.kind === "favicon") return icon.uri;
     return AsyncResult.getOrElse(get(projectGlyphImageAtom(projectGlyphKey(icon))), () => null);
   }).pipe(Atom.withLabel(`mobile-thread-project-chip-icon:${key}`));
 });

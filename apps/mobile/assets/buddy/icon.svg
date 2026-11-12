@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFDA4A"/>
+      <stop offset="1" stop-color="#FFB61C"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.2"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <g transform="translate(50 205.5) scale(11)">
+    <!-- shadow -->
+    <path d="M6 47 L44 60 L76 45 L38 32 Z" fill="#C97800" opacity="0.35" filter="url(#soft)"/>
+    <!-- base -->
+    <path d="M8 42 L44 54 L74 40 L38 28 Z" fill="#FFF7E2"/>
+    <path d="M8 42 L44 54 L44 57 L8 45 Z" fill="#2A2E3B"/>
+    <path d="M44 54 L74 40 L74 43 L44 57 Z" fill="#3D6DF2"/>
+    <path d="M30 43.5 L40 46.8 L47 43.5 L37 40.2 Z" fill="#F1E3BC"/>
+    <!-- lid -->
+    <path d="M38 28 L74 40 L76 14 L40 2 Z" fill="#2A2E3B"/>
+    <!-- screen -->
+    <path d="M41.25 26.6 L71.67 36.74 L73.25 16.15 L42.83 6.01 Z" fill="#3D7BFA"/>
+    <!-- face, drawn in the screen's own plane: u right, v up, 0..100 -->
+    <g transform="matrix(0.36 0.12 0.02 -0.26 38 28)">
+      <ellipse cx="36" cy="64" rx="6" ry="8" fill="#FFFFFF"/>
+      <ellipse cx="64" cy="64" rx="6" ry="8" fill="#FFFFFF"/>
+      <path d="M34 42 Q50 22 66 42" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

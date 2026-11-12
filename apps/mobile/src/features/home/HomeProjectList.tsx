@@ -3,6 +3,7 @@ import type {
   EnvironmentProject,
   EnvironmentThreadShell,
 } from "@t3tools/client-runtime/state/shell";
+import * as Haptics from "expo-haptics";
 import { useState } from "react";
 import { Platform, View } from "react-native";
 import Animated, { FadeIn, ReduceMotion } from "react-native-reanimated";
@@ -13,14 +14,16 @@ import { AppText as Text } from "../../components/ui/AppText";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { RowPressable } from "../../components/ui/RowPressable";
 import { cn } from "../../lib/cn";
+import { useDeadlinePassed } from "../../lib/clock";
 import { MOBILE_SHAPE } from "../../lib/designTokens";
 import { LAYOUT_MAKE_ROOM } from "../../lib/motion";
 import {
   countHomeActivity,
   describeHomeActivity,
+  homeThreadDoneUntilMs,
   resolveHomeThreadActivity,
 } from "./home-device-summary";
-import type { HomeProjectSection } from "./homeThreadList";
+import type { HomeProjectScope, HomeProjectSection } from "./homeThreadList";
 
 const VISIBLE_THREADS_PER_PROJECT = 4;
 
@@ -34,10 +37,13 @@ function ProjectThreadRow(props: {
   readonly onSelectThread: (thread: EnvironmentThreadShell) => void;
 }) {
   const activity = resolveHomeThreadActivity(props.thread);
+  const doneUntilMs = homeThreadDoneUntilMs(props.thread);
+  const doneExpired = useDeadlinePassed(doneUntilMs);
+  const justDone = doneUntilMs !== null && !doneExpired;
   return (
     <RowPressable
       accessibilityRole="button"
-      accessibilityLabel={`${props.thread.title}${activity === "attention" ? ", needs you" : activity === "working" ? ", working" : ""}`}
+      accessibilityLabel={`${props.thread.title}${activity === "attention" ? ", needs you" : activity === "working" ? ", working" : justDone ? ", done" : ""}`}
       onPress={() => props.onSelectThread(props.thread)}
       className="min-h-11 flex-row items-center gap-3 pl-4 pr-4"
     >
@@ -49,7 +55,9 @@ function ProjectThreadRow(props: {
               ? "bg-warning-foreground"
               : activity === "working"
                 ? "bg-primary"
-                : "border border-foreground-muted",
+                : justDone
+                  ? "bg-emerald-500"
+                  : "border border-foreground-muted",
           )}
         />
       </View>
@@ -65,6 +73,10 @@ export function HomeProjectList(props: {
   readonly searchQuery: string;
   readonly onSelectThread: (thread: EnvironmentThreadShell) => void;
   readonly onNewThreadInProject: (project: EnvironmentProject) => void;
+  /** Opens the add-project flow; absent where projects can't be added from here. */
+  readonly onAddProject?: () => void;
+  /** Long-pressing a project row renames it. */
+  readonly onRenameProject?: (scope: HomeProjectScope) => void;
 }) {
   const [expandedKeys, setExpandedKeys] = useState<ReadonlySet<string>>(() => new Set());
   const [showAllKeys, setShowAllKeys] = useState<ReadonlySet<string>>(() => new Set());
@@ -86,6 +98,9 @@ export function HomeProjectList(props: {
             ? `No projects or threads matching "${props.searchQuery}".`
             : "Add a project to start a coding session in it."
         }
+        {...(!searching && props.onAddProject
+          ? { actionLabel: "New project", onAction: props.onAddProject }
+          : {})}
         variant="plain"
       />
     );
@@ -139,7 +154,23 @@ export function HomeProjectList(props: {
                     accessibilityRole="button"
                     accessibilityLabel={`${scope.title}, ${summary}`}
                     accessibilityState={{ expanded }}
+                    accessibilityActions={
+                      props.onRenameProject
+                        ? [{ name: "rename", label: "Rename project" }]
+                        : undefined
+                    }
+                    onAccessibilityAction={(event) => {
+                      if (event.nativeEvent.actionName === "rename") props.onRenameProject?.(scope);
+                    }}
                     onPress={() => toggle(scope.key)}
+                    onLongPress={
+                      props.onRenameProject
+                        ? () => {
+                            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            props.onRenameProject?.(scope);
+                          }
+                        : undefined
+                    }
                     className="min-h-14 flex-row items-center gap-3 px-4 py-3"
                   >
                     <ProjectFavicon
@@ -235,6 +266,37 @@ export function HomeProjectList(props: {
           </Animated.View>
         </Animated.View>
       ))}
+      {props.onAddProject && !searching ? (
+        <Animated.View
+          layout={LAYOUT_MAKE_ROOM}
+          className="overflow-hidden border-continuous bg-grouped-card"
+          style={{
+            borderRadius:
+              Platform.OS === "android" ? MOBILE_SHAPE.group.android : MOBILE_SHAPE.group.ios,
+          }}
+        >
+          <RowPressable
+            accessibilityRole="button"
+            accessibilityLabel="New project"
+            accessibilityHint="Pick a device, then start a project or open a folder on it"
+            onPress={props.onAddProject}
+            className="min-h-13 flex-row items-center gap-3 px-4 py-3"
+          >
+            <View className="size-8 items-center justify-center rounded-lg bg-primary/10">
+              <SymbolView
+                name="folder.badge.plus"
+                size={16}
+                tintColorClassName="accent-primary-text"
+                type="monochrome"
+                weight="semibold"
+              />
+            </View>
+            <Text className="flex-1 font-workspace text-[15px] font-semibold text-primary-text">
+              New project
+            </Text>
+          </RowPressable>
+        </Animated.View>
+      ) : null}
     </View>
   );
 }

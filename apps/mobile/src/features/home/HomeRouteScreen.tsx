@@ -4,7 +4,7 @@ import { use } from "react";
 import { NativePrimaryColumnContext } from "../../native/v5-workspace-context";
 import * as Arr from "effect/Array";
 import * as Order from "effect/Order";
-import { useNavigation } from "@react-navigation/native";
+import { StackActions, useNavigation } from "@react-navigation/native";
 import { useMemo, useState } from "react";
 import { Platform } from "react-native";
 
@@ -27,7 +27,10 @@ import { AndroidHomeFabLayout } from "./AndroidHomeFab";
 import { HomeScreen } from "./HomeScreen";
 import { useHomeListOptions } from "./home-list-options";
 import { useAtomValueWhileVisible, useHomeRouteVisible } from "./home-route-visibility";
-import { buildHomeProjectScopes } from "./homeThreadList";
+import { buildHomeProjectScopes, type HomeProjectScope } from "./homeThreadList";
+import * as Dialog from "../../components/ui/Dialog";
+import { projectEnvironment } from "../../state/projects";
+import { useAtomCommand } from "../../state/use-atom-command";
 import { usePendingTaskListActions } from "./usePendingTaskListActions";
 import { useThreadListActions } from "./useThreadListActions";
 import { useWorkspaceTabs } from "../layout/workspace/WorkspaceTabsContext";
@@ -52,6 +55,10 @@ export function HomeRouteScreen() {
   const { environments: workspaceEnvironments, state: catalogState } = useWorkspaceState();
   const { savedConnectionsById } = useSavedRemoteConnections();
   const navigation = useNavigation();
+  const updateProject = useAtomCommand(projectEnvironment.update, {
+    label: "project name update",
+    reportFailure: true,
+  });
   const selectTab = useSelectWorkspaceTab();
   const workspace = useWorkspaceTabs();
   const [localSearchQuery, setLocalSearchQuery] = useState("");
@@ -163,11 +170,30 @@ export function HomeRouteScreen() {
     );
   }
 
+  // Every checkout of the project takes the new name, as Settings > Projects does.
+  const renameProject = (scope: HomeProjectScope) => {
+    Dialog.prompt({
+      title: "Rename project",
+      initialValue: scope.title,
+      confirmText: "Rename",
+      onConfirm: (value) => {
+        const title = value.trim();
+        if (title.length === 0 || title === scope.title) return;
+        for (const project of scope.projects) {
+          void updateProject({
+            environmentId: project.environmentId,
+            input: { projectId: project.id, title },
+          });
+        }
+      },
+    });
+  };
+
   return (
     <AndroidHomeFabLayout onStartNewTask={startNewTask}>
       <>
         <WorkspaceListHeader
-          accessibilityLabel="T3 Code, Threads"
+          accessibilityLabel="Buddy, Threads"
           onOpenEnvironments={() => openSettings(navigation, "SettingsEnvironments")}
           search={{
             value: searchQuery,
@@ -222,6 +248,18 @@ export function HomeRouteScreen() {
               },
             });
           }}
+          onAddProject={() =>
+            // The picked device card carries over, so the project lands on the Mac in view.
+            navigation.dispatch(
+              StackActions.push(
+                "AddProject",
+                selectedEnvironmentId === null
+                  ? undefined
+                  : { environmentId: String(selectedEnvironmentId) },
+              ),
+            )
+          }
+          onRenameProject={renameProject}
           onStartNewTask={startNewTask}
           pendingTasks={pendingTasks}
           projectGroupingMode={listOptions.projectGroupingMode}

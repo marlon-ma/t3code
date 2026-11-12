@@ -28,6 +28,19 @@ export function resolveHomeThreadActivity(thread: ActivityThread): HomeActivityS
   return status === "working" ? "working" : "idle";
 }
 
+const RECENTLY_COMPLETED_MS = 10 * 60 * 1000;
+
+/** When a just-finished thread's "done" highlight expires, or null if it has none. */
+export function homeThreadDoneUntilMs(
+  thread: ActivityThread & Pick<EnvironmentThreadShell, "latestRun">,
+): number | null {
+  if (resolveHomeThreadActivity(thread) !== "idle") return null;
+  const run = thread.latestRun;
+  if (run?.status !== "completed" || run.completedAt === null) return null;
+  const completedAtMs = Date.parse(run.completedAt);
+  return Number.isNaN(completedAtMs) ? null : completedAtMs + RECENTLY_COMPLETED_MS;
+}
+
 export function countHomeActivity(threads: ReadonlyArray<ActivityThread>): HomeActivityCounts {
   let attentionCount = 0;
   let workingCount = 0;
