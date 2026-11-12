@@ -1,3 +1,5 @@
+import { NATIVE_LIQUID_GLASS_SUPPORTED } from "./native/native-glass";
+import { DENSE_CONTENT_SCROLL_EDGE_EFFECTS } from "./native/scrollEdgeEffects";
 import { WORKSPACE_FONT_FAMILY } from "./lib/workspaceFont";
 import { isDraftThreadRoute } from "./features/threads/thread-route-state";
 import { ComponentCatalogScreen } from "./features/development/ComponentCatalogScreen";
@@ -550,7 +552,12 @@ const RootStackConfig = createWorkspaceStackNavigator({
     Thread: createNativeStackScreen({
       screen: ThreadRouteScreen,
       linking: { path: "threads/:environmentId?/:threadId?", alias: ["new/draft"] },
-      options: pageRoute({ duoMinimize: "onScrollUp" }),
+      options: {
+        ...pageRoute({ duoMinimize: "onScrollUp" }),
+        ...(NATIVE_LIQUID_GLASS_SUPPORTED
+          ? { scrollEdgeEffects: DENSE_CONTENT_SCROLL_EDGE_EFFECTS }
+          : undefined),
+      },
     }),
     NewTaskProject: createNativeStackScreen({
       screen: NewTaskRouteScreen,

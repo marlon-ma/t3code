@@ -1,6 +1,6 @@
 // Avoid RN/navigation imports so node checks do not load their untranspiled Flow.
 
-export type NativeTopScrollEdgeEffect = "automatic" | "soft";
+export type NativeTopScrollEdgeEffect = "automatic" | "soft" | "hard";
 export type NativeHeaderScrollEdgeEffects = {
   readonly top: NativeTopScrollEdgeEffect;
   readonly bottom: "hidden";
@@ -31,3 +31,14 @@ export function nativeHeaderScrollEdgeEffects(
     right: "hidden",
   };
 }
+
+/**
+ * For screens whose bar carries a title and controls over dense text: the soft blur lets a bubble
+ * or a line of prose read through the title, so the bar gets UIKit's opaque backing instead.
+ */
+export const DENSE_CONTENT_SCROLL_EDGE_EFFECTS: NativeHeaderScrollEdgeEffects = {
+  top: "hard",
+  bottom: "hidden",
+  left: "hidden",
+  right: "hidden",
+};

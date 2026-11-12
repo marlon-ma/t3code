@@ -328,7 +328,7 @@ function PairingScanCard(props: {
         <View
           className={cn(
             "items-center justify-center gap-2 border-continuous border-[3px]",
-            light ? "border-black/70" : "border-white/80",
+            light ? "border-black/20" : "border-white/80",
           )}
           style={{
             borderRadius: SCAN_RETICLE_RADIUS,
