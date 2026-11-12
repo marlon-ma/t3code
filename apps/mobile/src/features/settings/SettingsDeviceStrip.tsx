@@ -1,9 +1,9 @@
 import { useAtomValue } from "@effect/atom-react";
 import { useNavigation } from "@react-navigation/native";
 import { resolveEnvironmentMachineKind } from "@t3tools/contracts";
-import { ScrollView } from "react-native";
+import { View } from "react-native";
 
-import { DeviceCard } from "../../components/DeviceCard";
+import { DeviceCard, DeviceCardStrip } from "../../components/DeviceCard";
 import type { ConnectedEnvironmentSummary } from "../../state/remote-runtime-types";
 import { serverEnvironment } from "../../state/server";
 import { useRemoteConnections } from "../../state/use-remote-environment-registry";
@@ -38,19 +38,17 @@ export function SettingsDeviceStrip() {
   const { connectedEnvironments } = useRemoteConnections();
   if (connectedEnvironments.length === 0) return null;
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={{ marginHorizontal: -20 }}
-      contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
-    >
-      {connectedEnvironments.map((environment, index) => (
-        <SettingsDeviceCard
-          key={environment.environmentId}
-          environment={environment}
-          index={index}
-        />
-      ))}
-    </ScrollView>
+    // Pulled up through the list's top padding so the cards sit exactly where Home's do.
+    <View style={{ marginTop: -12 }}>
+      <DeviceCardStrip bleed={20}>
+        {connectedEnvironments.map((environment, index) => (
+          <SettingsDeviceCard
+            key={environment.environmentId}
+            environment={environment}
+            index={index}
+          />
+        ))}
+      </DeviceCardStrip>
+    </View>
   );
 }

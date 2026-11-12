@@ -1,6 +1,8 @@
 import { View } from "react-native";
 import type { ReactNode } from "react";
+import Animated from "react-native-reanimated";
 
+import { riseIn } from "../../lib/motion";
 import { AppText as Text } from "./AppText";
 import { Button } from "./Button";
 import { WorkspaceHeading } from "./WorkspaceHeading";
@@ -19,21 +21,28 @@ export function EmptyState(props: {
     return (
       <View className="items-center px-8 py-8">
         {props.illustration ? <View className="mb-4">{props.illustration}</View> : null}
-        <WorkspaceHeading textRole="title" className="text-center text-foreground">
-          {props.title}
-        </WorkspaceHeading>
-        <Text
-          textRole="body"
-          className="mt-2 text-center font-sans leading-normal text-foreground-muted"
-        >
-          {props.detail}
-        </Text>
+        {/* The words follow the drawing in, a beat apart, so the state reads top to bottom. */}
+        <Animated.View entering={riseIn(120)}>
+          <WorkspaceHeading textRole="title" className="text-center text-foreground">
+            {props.title}
+          </WorkspaceHeading>
+        </Animated.View>
+        <Animated.View entering={riseIn(190)}>
+          <Text
+            textRole="body"
+            className="mt-2 text-center font-sans leading-normal text-foreground-muted"
+          >
+            {props.detail}
+          </Text>
+        </Animated.View>
         {props.action ? (
-          <View className="mt-5">{props.action}</View>
+          <Animated.View entering={riseIn(260)} className="mt-5">
+            {props.action}
+          </Animated.View>
         ) : props.actionLabel && props.onAction ? (
-          <View className="mt-5">
+          <Animated.View entering={riseIn(260)} className="mt-5">
             <Button tone="primary" label={props.actionLabel} onPress={props.onAction} />
-          </View>
+          </Animated.View>
         ) : null}
       </View>
     );

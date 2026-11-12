@@ -1,4 +1,5 @@
 import { Pressable, ScrollView } from "react-native";
+import Animated, { ReduceMotion, ZoomIn, ZoomOut } from "react-native-reanimated";
 import { SymbolView } from "../../components/ui/AppSymbol";
 import { ListFilterMenu } from "../layout/workspace/ListFilterMenu";
 import type { EnvironmentId } from "@t3tools/contracts";
@@ -90,17 +91,22 @@ export function ThreadListFilters(props: {
         }}
       />
       {props.selectedEnvironmentId !== null || props.selectedProjectKey !== null ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Reset thread filters"
-          className="h-8 w-8 items-center justify-center"
-          onPress={() => {
-            props.onEnvironmentChange(null);
-            props.onProjectChange(null);
-          }}
+        <Animated.View
+          entering={ZoomIn.duration(180).reduceMotion(ReduceMotion.System)}
+          exiting={ZoomOut.duration(120).reduceMotion(ReduceMotion.System)}
         >
-          <SymbolView name="xmark.circle.fill" size={18} tintColorClassName="accent-icon-muted" />
-        </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Reset thread filters"
+            className="h-8 w-8 items-center justify-center"
+            onPress={() => {
+              props.onEnvironmentChange(null);
+              props.onProjectChange(null);
+            }}
+          >
+            <SymbolView name="xmark.circle.fill" size={18} tintColorClassName="accent-icon-muted" />
+          </Pressable>
+        </Animated.View>
       ) : null}
     </ScrollView>
   );

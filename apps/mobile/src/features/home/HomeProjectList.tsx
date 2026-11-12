@@ -13,10 +13,11 @@ import { SymbolView } from "../../components/ui/AppSymbol";
 import { AppText as Text } from "../../components/ui/AppText";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { RowPressable } from "../../components/ui/RowPressable";
+import { StatusDot } from "../../components/ui/StatusDot";
 import { cn } from "../../lib/cn";
 import { useDeadlinePassed } from "../../lib/clock";
 import { MOBILE_SHAPE } from "../../lib/designTokens";
-import { LAYOUT_MAKE_ROOM } from "../../lib/motion";
+import { CSS_EASE_EMPHASIZED, LAYOUT_MAKE_ROOM } from "../../lib/motion";
 import {
   countHomeActivity,
   describeHomeActivity,
@@ -48,18 +49,11 @@ function ProjectThreadRow(props: {
       className="min-h-11 flex-row items-center gap-3 pl-4 pr-4"
     >
       <View className="w-7 items-center">
-        <View
-          className={cn(
-            "size-2 rounded-full",
-            activity === "attention"
-              ? "bg-warning-foreground"
-              : activity === "working"
-                ? "bg-primary"
-                : justDone
-                  ? "bg-emerald-500"
-                  : "border border-foreground-muted",
-          )}
-        />
+        {activity === "attention" || activity === "working" || justDone ? (
+          <StatusDot tone={activity} />
+        ) : (
+          <View className="size-2 rounded-full border border-foreground-muted" />
+        )}
       </View>
       <Text className="flex-1 text-sm" numberOfLines={1}>
         {props.thread.title}
@@ -203,7 +197,8 @@ export function HomeProjectList(props: {
                       style={{
                         transform: [{ rotate: expanded ? "90deg" : "0deg" }],
                         transitionProperty: "transform",
-                        transitionDuration: 220,
+                        transitionDuration: 260,
+                        transitionTimingFunction: CSS_EASE_EMPHASIZED,
                       }}
                     >
                       <SymbolView
