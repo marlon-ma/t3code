@@ -44,12 +44,15 @@ type Driver = ServerProvider["driver"];
 
 // At or below this much left, a window reads as near its limit.
 const NEAR_LIMIT_PERCENT = 30;
+// At or below this much left, it is as good as spent.
+const EXHAUSTED_PERCENT = 10;
 
 /** A limit window as a status: running low or burning faster than even pace needs a look. */
 export function limitTone(
   remainingPercent: number,
   pace: keyof typeof PACE_LABEL | null,
 ): ActivityTone {
+  if (remainingPercent <= EXHAUSTED_PERCENT) return "failed";
   return remainingPercent <= NEAR_LIMIT_PERCENT || pace === "ahead" ? "attention" : "idle";
 }
 
@@ -76,9 +79,11 @@ function WindowRow(props: {
     >
       <View
         className={
-          remaining <= NEAR_LIMIT_PERCENT
-            ? "h-full rounded-full bg-warning-foreground"
-            : "h-full rounded-full bg-primary"
+          remaining <= EXHAUSTED_PERCENT
+            ? "h-full rounded-full bg-danger-foreground"
+            : remaining <= NEAR_LIMIT_PERCENT
+              ? "h-full rounded-full bg-warning-foreground"
+              : "h-full rounded-full bg-primary"
         }
         style={[
           { flex: remaining },

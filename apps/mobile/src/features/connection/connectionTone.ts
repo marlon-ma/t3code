@@ -2,7 +2,7 @@ import type { StatusTone } from "../../components/StatusPill";
 import type { ActivityTone } from "../../components/ui/StatusDot";
 import type { RemoteClientConnectionState } from "../../lib/connection";
 
-/** A connection phase in the shared status-dot colours: a failure asks for the user, a retry is work. */
+/** A connection phase in the shared status-dot colours: a retry is work, an old client asks for the user. */
 export function connectionActivityTone(state: RemoteClientConnectionState): ActivityTone {
   switch (state) {
     case "connected":
@@ -11,6 +11,7 @@ export function connectionActivityTone(state: RemoteClientConnectionState): Acti
     case "reconnecting":
       return "working";
     case "error":
+      return "failed";
     case "unsupported":
       return "attention";
     case "offline":

@@ -23,7 +23,7 @@ import { environmentPresentations } from "../../state/presentation";
 import { ConnectionDiagnosisDetails, useConnectionDiagnosis } from "./ConnectionDiagnosisDetails";
 import { ConnectionFormField } from "./ConnectionFormField";
 import { StatusDot } from "../../components/ui/StatusDot";
-import { connectionActivityTone } from "./connectionTone";
+import { connectionActivityTone, connectionTone } from "./connectionTone";
 import { environmentStatusText } from "./environmentStatusText";
 
 function connectionStatusLabel(environment: ConnectedEnvironmentSummary): string | null {
@@ -104,6 +104,10 @@ export function ConnectionEnvironmentRow(props: {
               ? `Manage ${props.environment.environmentLabel}`
               : `${props.expanded ? "Collapse" : "Expand"} details for ${props.environment.environmentLabel}`
           }
+          // The dot is the only thing on screen that says "connected"; say it for screen readers.
+          accessibilityValue={{
+            text: enabled ? connectionTone(props.environment.connectionState).label : "Off",
+          }}
           onPress={props.onToggle}
         >
           {props.hideIllustration ? null : (

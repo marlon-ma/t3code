@@ -28,7 +28,7 @@ import { environmentPresentations } from "../../state/presentation";
 import { availableCloudEnvironmentPresentation } from "../cloud/cloudEnvironmentPresentation";
 import { hasCloudPublicConfig } from "../cloud/publicConfig";
 import { StatusDot } from "../../components/ui/StatusDot";
-import { connectionActivityTone } from "./connectionTone";
+import { connectionActivityTone, connectionTone } from "./connectionTone";
 import { useConnectionDiagnosis } from "./ConnectionDiagnosisDetails";
 import { environmentStatusText } from "./environmentStatusText";
 import { type RelayEnvironmentView, useConnectionController } from "./useConnectionController";
@@ -343,6 +343,11 @@ function CloudEnvironmentRowShell(props: {
             : props.onRemove
               ? `Remove ${props.label} from this device`
               : undefined
+        }
+        accessibilityValue={
+          props.onOpen || props.onRemove
+            ? { text: connectionTone(props.connectionState).label }
+            : undefined
         }
         onPress={props.onOpen}
         onLongPress={props.onRemove}

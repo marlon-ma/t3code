@@ -474,7 +474,7 @@ function FloatingStatusLabel(props: {
         {props.status.tone === "reconnecting" ? (
           <AppActivityIndicator size="small" colorClassName="accent-icon-muted" />
         ) : (
-          <StatusDot tone="offline" />
+          <StatusDot tone="failed" />
         )}
         <Text
           className="max-w-[260px] shrink font-t3-medium text-xs text-foreground"

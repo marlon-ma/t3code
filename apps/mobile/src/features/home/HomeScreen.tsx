@@ -1,3 +1,4 @@
+import Animated, { FadeInLeft, FadeInRight, ReduceMotion } from "react-native-reanimated";
 import { SpotIllustration } from "../../components/SpotIllustration";
 import { useContentTopInset } from "../../components/ui/useBarInset";
 import { usePaneRole } from "../../components/ui/Pane";
@@ -834,12 +835,20 @@ export function HomeScreen(props: HomeScreenProps) {
               contentContainerStyle={listContentContainerStyle}
             >
               {homeHeader}
-              <HomeProjectList
-                sections={sections}
-                searchQuery={props.searchQuery}
-                onSelectThread={onSelectThread}
-                onNewThreadInProject={props.onNewThreadInProject}
-              />
+              {/* The list comes in from the side of the tab that was picked. */}
+              <Animated.View
+                key={listMode}
+                entering={(listMode === "all" ? FadeInRight : FadeInLeft)
+                  .duration(220)
+                  .reduceMotion(ReduceMotion.System)}
+              >
+                <HomeProjectList
+                  sections={sections}
+                  searchQuery={props.searchQuery}
+                  onSelectThread={onSelectThread}
+                  onNewThreadInProject={props.onNewThreadInProject}
+                />
+              </Animated.View>
             </HomeScrollView>
           </View>
         </ScreenContent>

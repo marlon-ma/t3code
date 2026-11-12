@@ -39,5 +39,9 @@ export function useIllustrationPalette(): IllustrationPalette {
   const accent = colorOf(useResolveClassNames("bg-primary"), "#1b4ed8");
   const muted = colorOf(useResolveClassNames("bg-foreground-muted"), "#6f6f79");
   const paper = colorOf(useResolveClassNames("bg-screen"), "#fcfcfc");
-  return { ink, accent, muted, paper, surface: mix(accent, paper, 0.18) };
+  // On a dark page a light wash disappears into the card, so the faces take more of the accent.
+  const paperChannels = channels(paper);
+  const darkPage =
+    paperChannels !== null && paperChannels[0] + paperChannels[1] + paperChannels[2] < 384;
+  return { ink, accent, muted, paper, surface: mix(accent, paper, darkPage ? 0.42 : 0.18) };
 }
