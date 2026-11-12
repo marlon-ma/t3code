@@ -72,9 +72,18 @@ it("uses an independent iOS identity for Workspace TestFlight builds", async () 
     entitlements: { "keychain-access-groups": ["$(AppIdentifierPrefix)com.marlonma.workspace"] },
   });
   expect(config.ios?.associatedDomains).toBeUndefined();
-  expect(config.updates).toEqual({ enabled: false });
-  expect(config.owner).toBeUndefined();
-  expect(config.extra?.eas).toBeUndefined();
+  // Updates come from the Workspace's own Expo project, never the T3 Code one.
+  expect(config.owner).toBe("marlonma");
+  expect(config.extra?.eas).toEqual({
+    projectId: "ca22af01-bc3b-4e4b-8bf4-00c9f5d20dd9",
+    observe: { endpointUrl: "https://observe.invalid" },
+  });
+  expect(config.updates).toMatchObject({
+    enabled: true,
+    url: "https://u.expo.dev/ca22af01-bc3b-4e4b-8bf4-00c9f5d20dd9",
+    requestHeaders: { "expo-channel-name": "production" },
+  });
+  expect(config.runtimeVersion).toEqual({ policy: "appVersion" });
   expect(config.extra?.relay.url).toBeNull();
   expect(config.extra?.clerk.publishableKey).toBeNull();
 });

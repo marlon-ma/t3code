@@ -20,10 +20,17 @@ const workspaceIos = {
   bundleIdentifier: "com.marlonma.workspace",
   teamId: "5YSTG24LJP",
   scheme: "marlon-workspace",
+  expoOwner: "marlonma",
+  easProjectId: "ca22af01-bc3b-4e4b-8bf4-00c9f5d20dd9",
+  // Workspace binaries are archived with Xcode, not EAS Build, so nothing stamps a channel into
+  // them; the request header names the one channel their updates are published to.
+  updateChannel: "production",
 } as const;
+// A Workspace binary takes any update published for its app version: its build number comes from
+// the environment and would give every archive its own fingerprint.
 const runtimeVersionPolicy =
   process.env.MOBILE_VERSION_POLICY ??
-  (APP_VARIANT === "development" ? "appVersion" : "fingerprint");
+  (APP_VARIANT === "development" || isWorkspaceTestFlightBuild ? "appVersion" : "fingerprint");
 
 const personalTeamBundleIdentifier = repoEnv.T3CODE_IOS_PERSONAL_TEAM_BUNDLE_ID?.trim();
 const IOS_BUNDLE_IDENTIFIER_PATTERN = /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/;
@@ -257,7 +264,13 @@ const config: ExpoConfig = {
   icon: variant.assets.appIcon,
   userInterfaceStyle: "automatic",
   updates: isWorkspaceTestFlightBuild
-    ? { enabled: false }
+    ? {
+        enabled: repoEnv.T3CODE_MOBILE_UPDATES_ENABLED !== "0",
+        url: `https://u.expo.dev/${workspaceIos.easProjectId}`,
+        checkAutomatically: "ON_LOAD",
+        fallbackToCacheTimeout: 0,
+        requestHeaders: { "expo-channel-name": workspaceIos.updateChannel },
+      }
     : {
         enabled: repoEnv.T3CODE_MOBILE_UPDATES_ENABLED !== "0",
         url: "https://u.expo.dev/d763fcb8-d37c-41ea-a773-b54a0ab4a454",
@@ -509,16 +522,15 @@ const config: ExpoConfig = {
       tracesDataset: cloudEnv.EXPO_PUBLIC_OTLP_TRACES_DATASET ?? null,
       tracesToken: cloudEnv.EXPO_PUBLIC_OTLP_TRACES_TOKEN ?? null,
     },
-    ...(!isWorkspaceTestFlightBuild
-      ? {
-          eas: {
-            projectId: "d763fcb8-d37c-41ea-a773-b54a0ab4a454",
-            observe: { endpointUrl: observeEndpointUrl },
-          },
-        }
-      : {}),
+    eas: isWorkspaceTestFlightBuild
+      ? // The Workspace has no relay, so this resolves to the `.invalid` endpoint and Observe stays off.
+        { projectId: workspaceIos.easProjectId, observe: { endpointUrl: observeEndpointUrl } }
+      : {
+          projectId: "d763fcb8-d37c-41ea-a773-b54a0ab4a454",
+          observe: { endpointUrl: observeEndpointUrl },
+        },
   },
-  ...(!isWorkspaceTestFlightBuild ? { owner: "pingdotgg" } : {}),
+  owner: isWorkspaceTestFlightBuild ? workspaceIos.expoOwner : "pingdotgg",
   experiments: {
     // Metro only runs babel-plugin-react-compiler when this is set; see src/reactCompilerCoverage.test.ts.
     reactCompiler: true,
