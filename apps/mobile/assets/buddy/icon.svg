@@ -1,15 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="-512 -512 1024 1024">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FFE033"/>
-      <stop offset="1" stop-color="#FFC800"/>
-    </linearGradient>
     <linearGradient id="ball" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#1F1F1F"/>
       <stop offset="1" stop-color="#0A0A0A"/>
     </linearGradient>
   </defs>
-  <rect x="-512" y="-512" width="1024" height="1024" fill="url(#bg)"/>
+  <rect x="-512" y="-512" width="1024" height="1024" fill="#FFFFFF"/>
   <!-- Buddy: the in-app ball, glancing up and to the right. -->
   <circle r="322" fill="url(#ball)"/>
   <g fill="#FFD60A">
